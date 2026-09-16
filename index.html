@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rock Clicker</title>
+  <style>
+    :root {
+      --bg: #0c0e12;
+      --panel: #161a22;
+      --panel-edge: #2a3140;
+      --ink: #e8edf5;
+      --muted: #8b95a8;
+      --gold: #e6b84d;
+      --gold-dim: #9a7530;
+      --stone: #6d737e;
+      --accent: #7eb8c9;
+      --good: #7bc47f;
+      --bad: #c47b7b;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(1200px 600px at 50% -10%, #1a2230 0%, transparent 55%),
+        radial-gradient(800px 400px at 100% 100%, #1a1810 0%, transparent 50%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: 1px solid var(--panel-edge);
+      background: #1e2430;
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+
+    button:hover { border-color: var(--gold-dim); }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .layout {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr minmax(280px, 360px);
+      grid-template-areas:
+        "stage shop"
+        "tray shop";
+      align-items: start;
+      gap: 16px;
+      padding: 8px 20px 20px;
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .stage { grid-area: stage; }
+    .shop { grid-area: shop; align-self: stretch; }
+    .tray { grid-area: tray; }
+
+    .stage, .shop, .tray {
+      background: color-mix(in srgb, var(--panel) 92%, black);
+      border: 1px solid var(--panel-edge);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      background: #12161e;
+      border: 1px solid #242b38;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .stat label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .stat strong {
+      font-size: 1.05rem;
+      color: var(--gold);
+    }
+
+    .rock-wrap {
+      position: relative;
+      height: 340px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 50% 70%, #2a2418 0%, transparent 55%),
+        linear-gradient(#10141c, #0c1016);
+      user-select: none;
+    }
+
+    .rock-wrap.drop-ready {
+      box-shadow: inset 0 0 0 2px var(--gold);
+      background:
+        radial-gradient(circle at 50% 70%, #3a3018 0%, transparent 55%),
+        linear-gradient(#10141c, #0c1016);
+    }
+
+    .mounted-drills {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .mounted-drill {
+      position: absolute;
+      left: 68%;
+      top: 40%;
+      width: 126px;
+      transform: translate(-50%, -50%) rotate(62deg);
+      filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5));
+    }
+
+    .mounted-drill svg { display: block; width: 100%; }
+
+    .mounted-drill .bit {
+      transform-origin: 24px 12px;
+      animation: bore 0.18s linear infinite;
+    }
+
+    @keyframes bore {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .particles, .floats, .miners, .rail {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .rail {
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 280ms ease;
+    }
+
+    .rail.visible { opacity: 1; }
+
+    .factory {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      width: 72px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 280ms ease, transform 280ms ease;
+      pointer-events: none;
+      z-index: 8;
+      filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+    }
+
+    .factory.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    .factory .smoke {
+      transform-origin: 44px 8px;
+      animation: puff 1.8s ease-out infinite;
+    }
+
+    @keyframes puff {
+      0% { opacity: 0.7; transform: translateY(0) scale(0.6); }
+      100% { opacity: 0; transform: translateY(-10px) scale(1.25); }
+    }
+
+    .miner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 36px;
+      z-index: 7;
+      offset-rotate: auto;
+      offset-anchor: 50% 70%;
+      animation: haul 3.2s ease-in-out infinite;
+      filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
+    }
+
+    .miner svg {
+      display: block;
+      width: 100%;
+    }
+
+    .miner .cargo {
+      animation: cargo 3.2s ease-in-out infinite;
+    }
+
+    @keyframes haul {
+      0%, 100% { offset-distance: 0%; }
+      42%, 50% { offset-distance: 100%; }
+    }
+
+    @keyframes cargo {
+      0%, 42% { opacity: 0; }
+      50%, 92% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .rock {
+      position: relative;
+      z-index: 1;
+      width: min(240px, 70%);
+      cursor: pointer;
+      filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.55));
+      transform: scale(1);
+      transition: transform 80ms ease;
+    }
+
+    .rock:active, .rock.hit {
+      transform: scale(0.92) rotate(-2deg);
+    }
+
+    .hint {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 12px;
+      font-size: 0.9rem;
+    }
+
+    .lands {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-top: 12px;
+      padding-bottom: 2px;
+    }
+
+    .land-card {
+      flex: 0 0 96px;
+      border: 1px solid #2a3140;
+      background: #12161e;
+      border-radius: 12px;
+      padding: 8px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .land-card.active { border-color: var(--gold); }
+    .land-card.locked { cursor: default; opacity: 0.78; }
+    .land-card .swatch {
+      height: 28px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+    .land-card .name {
+      font-size: 0.72rem;
+      line-height: 1.2;
+    }
+    .land-card .meta {
+      color: var(--muted);
+      font-size: 0.68rem;
+      margin-top: 4px;
+    }
+    .land-card .unlock {
+      margin-top: 6px;
+      padding: 4px 6px;
+      font-size: 0.72rem;
+      width: 100%;
+      background: #243018;
+      border-color: #3d5228;
+      color: var(--good);
+    }
+
+    .tray {
+      padding: 12px 14px;
+    }
+
+    .tray h2 {
+      margin: 0 0 8px;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .tray-slots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 52px;
+      align-items: center;
+    }
+
+    .tray-empty {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .gear-icon {
+      width: 48px;
+      height: 48px;
+      border: 1px solid #2a3140;
+      background: #12161e;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .gear-icon:active { cursor: grabbing; }
+    .gear-icon svg { width: 40px; height: 28px; pointer-events: none; }
+
+    .drag-ghost {
+      position: fixed;
+      width: 96px;
+      height: 64px;
+      pointer-events: none;
+      z-index: 80;
+      transform: translate(-50%, -50%) scale(1.08);
+      filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.45));
+    }
+
+    .shop h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .shop h2.sub {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #242b38;
+    }
+
+    .upgrade {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #242b38;
+    }
+
+    .upgrade:last-child { border-bottom: 0; }
+
+    .upgrade .name { font-weight: 650; }
+    .upgrade .desc { color: var(--muted); font-size: 0.82rem; grid-column: 1 / -1; }
+    .upgrade .owned { color: var(--gold); font-size: 0.82rem; align-self: center; }
+
+    .buy {
+      grid-column: 2;
+      grid-row: 1;
+      background: #243018;
+      border-color: #3d5228;
+      color: var(--good);
+      white-space: nowrap;
+    }
+
+    .buy.reward {
+      background: #3a3018;
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+
+    .buy.reward:hover:not(:disabled) { background: #4a3c1c; }
+
+    .float {
+      position: absolute;
+      font-weight: 700;
+      color: var(--gold);
+      animation: floatUp 700ms ease-out forwards;
+      text-shadow: 0 2px 8px #000;
+      pointer-events: none;
+    }
+
+    @keyframes floatUp {
+      from { opacity: 1; transform: translate(-50%, 0); }
+      to { opacity: 0; transform: translate(-50%, -70px); }
+    }
+
+    .chip {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: #8a8174;
+      animation: chip 500ms ease-out forwards;
+    }
+
+    @keyframes chip {
+      to { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(180deg); }
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 0 20px 16px;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "stage"
+          "tray"
+          "shop";
+      }
+      .stats { grid-template-columns: 1fr; }
+      .rock-wrap { height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Rock Clicker</h1>
+      <div class="subtitle" id="tierName">Pebble pit</div>
+    </div>
+    <div class="header-actions">
+      <button type="button" id="saveBtn">Save</button>
+      <button type="button" id="resetBtn">Reset</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="stage">
+      <div class="stats">
+        <div class="stat">
+          <label>Rocks</label>
+          <strong id="rocks">0</strong>
+        </div>
+        <div class="stat">
+          <label>Per click</label>
+          <strong id="perClick">1</strong>
+        </div>
+        <div class="stat">
+          <label>Per second</label>
+          <strong id="perSec">0</strong>
+        </div>
+      </div>
+      <div class="rock-wrap" id="arena">
+        <div class="particles" id="particles"></div>
+        <div class="floats" id="floats"></div>
+        <svg class="rail" id="rail" aria-hidden="true"></svg>
+        <div class="miners" id="miners"></div>
+        <svg id="rock" class="rock" viewBox="0 0 200 180" role="button" aria-label="Click the rock" tabindex="0">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#9aa3b2" />
+              <stop offset="45%" stop-color="#6d737e" />
+              <stop offset="100%" stop-color="#3f444c" />
+            </linearGradient>
+          </defs>
+          <path id="rockBody" fill="url(#g)" stroke="#2b3038" stroke-width="3"
+            d="M38 118 L22 78 L48 42 L96 22 L148 36 L182 78 L168 124 L118 158 L62 152 Z" />
+          <path fill="none" stroke="#cfd5de" stroke-width="2" opacity="0.35"
+            d="M58 70 L92 48 L126 68" />
+          <path fill="none" stroke="#2a2e34" stroke-width="2" opacity="0.45"
+            d="M70 118 L110 96 L150 112" />
+        </svg>
+        <svg class="factory" id="factory" viewBox="0 0 64 56" aria-hidden="true">
+          <rect x="6" y="22" width="42" height="28" rx="2" fill="#3a4454" stroke="#1c222c" stroke-width="2" />
+          <path d="M4 24 L27 8 L50 24 Z" fill="#5b4a3a" stroke="#2a221c" stroke-width="2" />
+          <rect x="38" y="10" width="8" height="16" fill="#4a5564" stroke="#1c222c" stroke-width="1.5" />
+          <circle class="smoke" cx="42" cy="8" r="4" fill="#9aa3b2" />
+          <rect x="12" y="30" width="8" height="8" fill="#e6b84d" opacity="0.75" />
+          <rect x="24" y="30" width="8" height="8" fill="#7eb8c9" opacity="0.55" />
+          <rect x="14" y="40" width="10" height="10" fill="#1c222c" />
+          <rect x="48" y="34" width="12" height="16" fill="#2e3644" stroke="#1c222c" stroke-width="1.5" />
+        </svg>
+        <div class="mounted-drills" id="mountedDrills"></div>
+      </div>
+      <p class="hint">New lands start without crew, carts, or drills. Stone pick, sledge, and beam cutter stay with you.</p>
+      <div class="lands" id="lands"></div>
+    </section>
+
+    <aside class="tray" id="tray">
+      <h2>Gear rack</h2>
+      <div class="tray-slots" id="traySlots"></div>
+    </aside>
+
+    <aside class="shop">
+      <h2>New land</h2>
+      <div id="landShop"></div>
+      <h2 class="sub">Quarry shop</h2>
+      <div id="shop"></div>
+    </aside>
+  </main>
+
+  <footer>Progress saves in this browser. Offline-friendly single file.</footer>
+
+  <script>
+    const SAVE_KEY = "rock-clicker-v1";
+    const LANDS = [
+      { id: "pebble", name: "Pebble pit", cost: 0, mult: 1, colors: ["#9aa3b2", "#6d737e", "#3f444c"] },
+      { id: "granite", name: "Granite shelf", cost: 800, mult: 1.75, colors: ["#b8c0c8", "#7a838c", "#4a5158"] },
+      { id: "quartz", name: "Quartz vein", cost: 9000, mult: 2.75, colors: ["#d7ecec", "#8bb8b8", "#4f6f70"] },
+      { id: "gold", name: "Gold seam", cost: 85000, mult: 4.25, colors: ["#f3d27a", "#c4922e", "#6e4b16"] },
+      { id: "obsidian", name: "Obsidian core", cost: 750000, mult: 6.5, colors: ["#6a5a78", "#2d2438", "#120e18"] },
+      { id: "meteor", name: "Meteorite", cost: 6500000, mult: 10, colors: ["#c9d4e8", "#5b6d88", "#1c2430"] }
+    ];
+
+    const UPGRADES = [
+      { id: "pick", name: "Stone pick", desc: "+0.4 per click", base: 12, pow: 1.38, click: 0.4, auto: 0 },
+      { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Carts upgrade as you buy more.", base: 35, pow: 1.36, click: 0, auto: 0.2 },
+      { id: "hammer", name: "Sledge line", desc: "+1.5 per click", base: 150, pow: 1.4, click: 1.5, auto: 0 },
+      { id: "cart", name: "Mine carts", desc: "+1.2 / sec", base: 900, pow: 1.35, click: 0, auto: 1.2 },
+      { id: "drill", name: "Bore drill", desc: "One drill. First buy is placeable; later buys upgrade it.", base: 4500, pow: 1.38, click: 0, auto: 0 },
+      { id: "blast", name: "Powder charges", desc: "+8 / sec", base: 18000, pow: 1.37, click: 0, auto: 8 },
+      { id: "laser", name: "Beam cutter", desc: "+35 per click", base: 140000, pow: 1.45, click: 35, auto: 0 },
+      { id: "orbit", name: "Orbital quarry", desc: "+50 / sec", base: 620000, pow: 1.42, click: 0, auto: 50 }
+    ];
+
+    const state = {
+      rocks: 0,
+      total: 0,
+      activeLand: "pebble",
+      unlockedLands: ["pebble"],
+      owned: Object.fromEntries(UPGRADES.map((u) => [u.id, 0])),
+      landStats: {}
+    };
+
+    const isClickUpgrade = (id) => (UPGRADES.find((u) => u.id === id)?.click || 0) > 0;
+
+    function emptyLandOwned() {
+      return Object.fromEntries(UPGRADES.filter((u) => !isClickUpgrade(u.id)).map((u) => [u.id, 0]));
+    }
+
+    function landId(id) {
+      return LANDS.some((l) => l.id === id) ? id : "pebble";
+    }
+
+    function landBag(id) {
+      const key = landId(id == null ? state.activeLand : id);
+      if (!state.landStats[key]) {
+        state.landStats[key] = { owned: emptyLandOwned(), placed: {} };
+      }
+      const bag = state.landStats[key];
+      if (!bag.owned || typeof bag.owned !== "object") bag.owned = emptyLandOwned();
+      Object.keys(emptyLandOwned()).forEach((k) => {
+        if (bag.owned[k] == null) bag.owned[k] = 0;
+        else bag.owned[k] = Number(bag.owned[k]) || 0;
+      });
+      bag.placed = bag.placed || {};
+      return bag;
+    }
+
+    function ownedOf(id) {
+      if (isClickUpgrade(id)) return Number(state.owned[id]) || 0;
+      return Number(landBag(state.activeLand).owned[id]) || 0;
+    }
+
+    function addOwned(id) {
+      if (isClickUpgrade(id)) {
+        state.owned[id] = ownedOf(id) + 1;
+        return;
+      }
+      const bag = landBag(state.activeLand);
+      bag.owned[id] = (Number(bag.owned[id]) || 0) + 1;
+    }
+
+    const DRILL_AUTO = 4;
+    const DRILL_COLORS = [
+      { body: "#6d5336", housing: "#4a5564", window: "#7eb8c9", bit: "#c9d4e8", rim: "#2a221c" },
+      { body: "#3f4854", housing: "#6a737e", window: "#9aa3ae", bit: "#d5d0c6", rim: "#1c222c" },
+      { body: "#3f4854", housing: "#5c6570", window: "#e6b84d", bit: "#f4e08a", rim: "#c9a24a" },
+      { body: "#2f3540", housing: "#5a5040", window: "#e6b84d", bit: "#f3d27a", rim: "#e6b84d" },
+      { body: "#1c2430", housing: "#2d2438", window: "#7eb8c9", bit: "#c9d4e8", rim: "#7eb8c9" }
+    ];
+
+    function visualTier(n) {
+      if (n >= 15) return 4;
+      if (n >= 10) return 3;
+      if (n >= 6) return 2;
+      if (n >= 3) return 1;
+      return 0;
+    }
+
+    function drillMarkup(n) {
+      const c = DRILL_COLORS[visualTier(n)];
+      return `
+        <svg viewBox="0 0 36 24" aria-hidden="true">
+          <rect x="2" y="7" width="6" height="10" rx="1.5" fill="${c.body}" stroke="${c.rim}" stroke-width="1" />
+          <rect x="7" y="5" width="12" height="14" rx="2" fill="${c.housing}" stroke="${c.rim}" stroke-width="1.1" />
+          <rect x="10" y="8" width="6" height="8" rx="1" fill="${c.window}" opacity="0.7" />
+          <g class="bit">
+            <rect x="18" y="10" width="9" height="4" fill="${c.bit}" />
+            <polygon points="27,8 35,12 27,16" fill="${c.bit}" />
+          </g>
+        </svg>`;
+    }
+
+    const PLACEABLES = [
+      { id: "drill", upgradeId: "drill", name: "Bore drill", auto: DRILL_AUTO, markup: drillMarkup }
+    ];
+
+    const CARTS = [
+      `<svg viewBox="0 0 32 22" aria-hidden="true">
+        <rect x="8" y="10" width="18" height="7" rx="1.2" fill="#6d5336" stroke="#2a221c" stroke-width="1" />
+        <circle class="cargo" cx="17" cy="12.5" r="2.3" fill="#cfc6b8" />
+        <circle cx="13" cy="18.5" r="2.2" fill="#2b3038" />
+        <circle cx="22" cy="18.5" r="2.2" fill="#2b3038" />
+      </svg>`,
+      `<svg viewBox="0 0 32 22" aria-hidden="true">
+        <path d="M8 16 V9 H24 V16 Z" fill="#4b5560" stroke="#1c222c" stroke-width="1.2" />
+        <path d="M8 9 L11 5 H21 L24 9" fill="#6a737e" stroke="#1c222c" stroke-width="1" />
+        <circle class="cargo" cx="16" cy="10.5" r="2.5" fill="#d5d0c6" />
+        <circle cx="12" cy="18.4" r="2.3" fill="#1a1d22" />
+        <circle cx="12" cy="18.4" r="1.1" fill="#8b949e" />
+        <circle cx="21" cy="18.4" r="2.3" fill="#1a1d22" />
+        <circle cx="21" cy="18.4" r="1.1" fill="#8b949e" />
+      </svg>`,
+      `<svg viewBox="0 0 32 22" aria-hidden="true">
+        <path d="M7 16 V8.5 H25 V16 Z" fill="#3f4854" stroke="#171c24" stroke-width="1.2" />
+        <path d="M7 8.5 L10 4.5 H22 L25 8.5" fill="#5c6570" stroke="#171c24" stroke-width="1" />
+        <circle class="cargo" cx="16" cy="10" r="2.6" fill="#e6b84d" />
+        <rect x="22.5" y="2" width="3" height="5" rx="1" fill="#e6b84d" />
+        <circle cx="24" cy="2" r="1.6" fill="#f4e08a" />
+        <circle cx="12" cy="18.4" r="2.3" fill="#1a1d22" />
+        <circle cx="12" cy="18.4" r="1.1" fill="#c9a24a" />
+        <circle cx="21" cy="18.4" r="2.3" fill="#1a1d22" />
+        <circle cx="21" cy="18.4" r="1.1" fill="#c9a24a" />
+      </svg>`,
+      `<svg viewBox="0 0 32 22" aria-hidden="true">
+        <path d="M6 16 V8 H26 V16 Z" fill="#2f3540" stroke="#e6b84d" stroke-width="1.3" />
+        <path d="M6 8 L10 3.5 H22 L26 8" fill="#5a5040" stroke="#e6b84d" stroke-width="1" />
+        <circle class="cargo" cx="13" cy="10" r="2.2" fill="#f3d27a" />
+        <circle class="cargo" cx="19" cy="9.5" r="2.1" fill="#d7ecec" />
+        <circle cx="11" cy="18.4" r="2.3" fill="#1a1d22" />
+        <circle cx="11" cy="18.4" r="1.1" fill="#e6b84d" />
+        <circle cx="21" cy="18.4" r="2.3" fill="#1a1d22" />
+        <circle cx="21" cy="18.4" r="1.1" fill="#e6b84d" />
+      </svg>`,
+      `<svg viewBox="0 0 34 22" aria-hidden="true">
+        <rect x="25" y="2" width="4" height="7" fill="#4a5564" />
+        <circle cx="27" cy="1.5" r="2" fill="#7eb8c9" opacity="0.85" />
+        <path d="M5 16 V8 H27 V16 Z" fill="#1c2430" stroke="#7eb8c9" stroke-width="1.3" />
+        <path d="M5 8 L9 3 H23 L27 8" fill="#2d2438" stroke="#7eb8c9" stroke-width="1" />
+        <circle class="cargo" cx="12" cy="10" r="2.2" fill="#c9d4e8" />
+        <circle class="cargo" cx="18" cy="9.6" r="2.2" fill="#e6b84d" />
+        <path d="M3 16 L7 12 H10" fill="none" stroke="#7eb8c9" stroke-width="1.2" />
+        <circle cx="11" cy="18.4" r="2.3" fill="#11141a" />
+        <circle cx="11" cy="18.4" r="1.1" fill="#7eb8c9" />
+        <circle cx="22" cy="18.4" r="2.3" fill="#11141a" />
+        <circle cx="22" cy="18.4" r="1.1" fill="#7eb8c9" />
+      </svg>`
+    ];
+
+    const el = {
+      rocks: document.getElementById("rocks"),
+      perClick: document.getElementById("perClick"),
+      perSec: document.getElementById("perSec"),
+      shop: document.getElementById("shop"),
+      landShop: document.getElementById("landShop"),
+      lands: document.getElementById("lands"),
+      rock: document.getElementById("rock"),
+      particles: document.getElementById("particles"),
+      floats: document.getElementById("floats"),
+      miners: document.getElementById("miners"),
+      factory: document.getElementById("factory"),
+      rail: document.getElementById("rail"),
+      arena: document.getElementById("arena"),
+      traySlots: document.getElementById("traySlots"),
+      mountedDrills: document.getElementById("mountedDrills"),
+      tierName: document.getElementById("tierName"),
+      saveBtn: document.getElementById("saveBtn"),
+      resetBtn: document.getElementById("resetBtn")
+    };
+
+    const fmt = (n) => {
+      if (n < 1000) return Number(n.toFixed(n < 10 && n % 1 ? 1 : 0)).toString();
+      const units = ["", "K", "M", "B", "T"];
+      let i = 0;
+      while (n >= 1000 && i < units.length - 1) { n /= 1000; i++; }
+      return n.toFixed(n >= 100 ? 0 : 1) + units[i];
+    };
+
+    const MILESTONE = 5;
+    const MILESTONE_MULT = 4;
+
+    const isMilestone = (n) => n > 0 && n % MILESTONE === 0;
+    const nextIsReward = (id) => isMilestone(ownedOf(id) + 1);
+
+    function scaledStat(perLevel, owned) {
+      if (!perLevel || owned <= 0) return 0;
+      let total = 0;
+      for (let i = 1; i <= owned; i++) {
+        total += perLevel * (isMilestone(i) ? MILESTONE_MULT : 1);
+      }
+      return total;
+    }
+
+    const costOf = (u) => {
+      const n = ownedOf(u.id);
+      const t = Math.min(1, n / 10);
+      const pow = 1.1 + (u.pow - 1.1) * t;
+      const extra = 0.15 + 1.1 * t;
+      const starter = 0.55 + 0.45 * t;
+      const raw = u.base * starter * Math.pow(pow, n) * Math.pow(n + 1, extra);
+      return Math.max(1, Math.floor(raw * 0.8));
+    };
+    const perClick = () => (1 + UPGRADES.reduce((s, u) => s + scaledStat(u.click, ownedOf(u.id)), 0)) * landMult();
+    const unusedPlaceable = (id) => ownedOf(id) > 0 && !landBag().placed[id];
+    const placeableAuto = () => PLACEABLES.reduce((s, p) => (
+      landBag().placed[p.id] ? s + scaledStat(p.auto, ownedOf(p.upgradeId)) : s
+    ), 0);
+    const perSec = () => (UPGRADES.reduce((s, u) => s + scaledStat(u.auto, ownedOf(u.id)), 0) + placeableAuto()) * landMult();
+    const activeLand = () => LANDS.find((l) => l.id === state.activeLand) || LANDS[0];
+    const landMult = () => activeLand().mult;
+    const nextLand = () => LANDS.find((l) => !state.unlockedLands.includes(l.id));
+    const cartTier = () => visualTier(ownedOf("cart"));
+    const RAIL_COLORS = ["#8a9098", "#9aa3ae", "#c9a24a", "#e6b84d", "#7eb8c9"];
+
+    function railPoints(w, h) {
+      return {
+        p0: { x: 36, y: h - 20 },
+        p1: { x: w * 0.28, y: h - 22 },
+        p2: { x: w * 0.50, y: h * 0.50 }
+      };
+    }
+
+    function quadPoint(p0, p1, p2, t) {
+      const mt = 1 - t;
+      return {
+        x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
+        y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y
+      };
+    }
+
+    function quadTan(p0, p1, p2, t) {
+      const mt = 1 - t;
+      return {
+        x: 2 * mt * (p1.x - p0.x) + 2 * t * (p2.x - p1.x),
+        y: 2 * mt * (p1.y - p0.y) + 2 * t * (p2.y - p1.y)
+      };
+    }
+
+    function railPath(w, h) {
+      const { p0, p1, p2 } = railPoints(w, h);
+      return `M ${p0.x} ${p0.y} Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`;
+    }
+
+    function drawRail() {
+      const w = el.arena.clientWidth;
+      const h = el.arena.clientHeight;
+      if (!w || !h) return "";
+      const { p0, p1, p2 } = railPoints(w, h);
+      const d = railPath(w, h);
+      const metal = RAIL_COLORS[cartTier()];
+      const ties = [];
+      for (let i = 0; i <= 14; i++) {
+        const t = i / 14;
+        const p = quadPoint(p0, p1, p2, t);
+        const tan = quadTan(p0, p1, p2, t);
+        const len = Math.hypot(tan.x, tan.y) || 1;
+        const nx = -tan.y / len * 7;
+        const ny = tan.x / len * 7;
+        ties.push(`<line x1="${p.x - nx}" y1="${p.y - ny}" x2="${p.x + nx}" y2="${p.y + ny}" />`);
+      }
+      el.rail.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      el.rail.innerHTML = `
+        <path d="${d}" fill="none" stroke="#241c14" stroke-width="16" stroke-linecap="round" />
+        <g stroke="#5a4632" stroke-width="4" stroke-linecap="round">${ties.join("")}</g>
+        <path d="${d}" fill="none" stroke="#3a3330" stroke-width="8" stroke-linecap="round" />
+        <path d="${d}" fill="none" stroke="${metal}" stroke-width="2.4" stroke-linecap="round" />
+        <circle cx="${p2.x}" cy="${p2.y}" r="4" fill="#2a2418" stroke="${metal}" stroke-width="1.5" />
+      `;
+      return d;
+    }
+
+    function layoutMiners() {
+      const d = drawRail();
+      if (!d) return;
+      el.miners.querySelectorAll(".miner").forEach((node) => {
+        node.style.offsetPath = `path("${d}")`;
+      });
+    }
+
+    function syncMiners() {
+      const crew = ownedOf("crew");
+      const carts = ownedOf("cart");
+      const showFactory = crew > 0;
+      const showRail = carts > 0;
+      const tier = cartTier();
+      const key = [landId(state.activeLand), crew, carts, tier].join("-");
+      if (el.factory) {
+        el.factory.setAttribute("class", showFactory ? "factory visible" : "factory");
+        el.factory.style.opacity = showFactory ? "1" : "0";
+      }
+      if (el.rail) {
+        el.rail.setAttribute("class", showRail ? "rail visible" : "rail");
+        el.rail.style.opacity = showRail ? "1" : "0";
+      }
+      if (!el.miners) return;
+      if (el.miners.dataset.key === key) {
+        if (showRail) layoutMiners();
+        return;
+      }
+      el.miners.dataset.key = key;
+      el.miners.innerHTML = "";
+      if (!showRail) return;
+      const node = document.createElement("div");
+      node.className = "miner";
+      node.innerHTML = CARTS[tier] || CARTS[0];
+      el.miners.appendChild(node);
+      layoutMiners();
+    }
+
+    function syncPlaceables() {
+      const waiting = PLACEABLES.filter((p) => unusedPlaceable(p.id));
+      if (!waiting.length) {
+        el.traySlots.innerHTML = `<div class="tray-empty">Buy a tool, then drag it onto the rock. Extra buys upgrade the same tool.</div>`;
+      } else {
+        el.traySlots.innerHTML = waiting.map((p) => `
+          <button type="button" class="gear-icon" data-gear="${p.id}" aria-label="Drag ${p.name} onto the rock">
+            ${p.markup(ownedOf(p.upgradeId))}
+          </button>`).join("");
+      }
+      el.mountedDrills.innerHTML = PLACEABLES.filter((p) => landBag().placed[p.id]).map((p) =>
+        `<div class="mounted-drill" data-placed="${p.id}">${p.markup(ownedOf(p.upgradeId))}</div>`
+      ).join("");
+    }
+
+    function placeGear(id) {
+      const p = PLACEABLES.find((item) => item.id === id);
+      if (!p || unusedPlaceable(id) === false) return false;
+      landBag().placed[id] = true;
+      render();
+      save();
+      return true;
+    }
+
+    function addRocks(amount) {
+      state.rocks += amount;
+      state.total += amount;
+    }
+
+    function paintRock() {
+      const land = activeLand();
+      el.tierName.textContent = land.name + " · x" + land.mult;
+      const stops = document.querySelectorAll("#g stop");
+      stops.forEach((stop, i) => stop.setAttribute("stop-color", land.colors[i]));
+    }
+
+    function swatch(land) {
+      return `linear-gradient(135deg, ${land.colors[0]}, ${land.colors[2]})`;
+    }
+
+    function renderLands() {
+      const nxt = nextLand();
+      el.lands.innerHTML = LANDS.map((land) => {
+        const open = state.unlockedLands.includes(land.id);
+        const active = state.activeLand === land.id;
+        if (open) {
+          return `<button type="button" class="land-card ${active ? "active" : ""}" data-land="${land.id}">
+            <div class="swatch" style="background:${swatch(land)}"></div>
+            <div class="name">${land.name}</div>
+            <div class="meta">x${land.mult} income</div>
+          </button>`;
+        }
+        const canBuy = nxt && nxt.id === land.id;
+        return `<div class="land-card locked">
+          <div class="swatch" style="background:${swatch(land)}"></div>
+          <div class="name">${land.name}</div>
+          <div class="meta">x${land.mult} income</div>
+          ${canBuy ? `<button type="button" class="unlock" data-unlock="${land.id}">Unlock · ${fmt(land.cost)}</button>` : `<div class="meta">Locked</div>`}
+        </div>`;
+      }).join("");
+
+      if (!el.landShop) return;
+      if (!nxt) {
+        el.landShop.innerHTML = `<div class="upgrade"><div class="desc">Every land is open. Switch rocks above without losing progress.</div></div>`;
+        return;
+      }
+      const can = state.rocks >= nxt.cost;
+      el.landShop.innerHTML = `
+        <div class="upgrade">
+          <div class="name">${nxt.name}</div>
+          <div class="owned">x${nxt.mult}</div>
+          <div class="desc">Click tools stay. Crew, carts, drills, and other land tools start fresh here. Old lands keep theirs.</div>
+          <button class="buy" data-unlock="${nxt.id}" ${can ? "" : "disabled"}>Unlock · ${fmt(nxt.cost)}</button>
+        </div>`;
+    }
+
+    function unlockLand(id) {
+      const land = LANDS.find((l) => l.id === id);
+      if (!land || state.unlockedLands.includes(id)) return;
+      if (nextLand()?.id !== id) return;
+      if (state.rocks < land.cost) return;
+      state.rocks -= land.cost;
+      state.unlockedLands.push(id);
+      landBag(id);
+      render();
+      save();
+    }
+
+    function renderStats() {
+      el.rocks.textContent = fmt(state.rocks);
+      el.perClick.textContent = fmt(perClick());
+      el.perSec.textContent = fmt(perSec());
+      paintRock();
+    }
+
+    function renderShop(rebuild) {
+      if (rebuild || !el.shop.children.length) {
+        el.shop.innerHTML = UPGRADES.map((u) => `
+          <div class="upgrade" data-upgrade="${u.id}">
+            <div class="name">${u.name}</div>
+            <div class="owned"></div>
+            <div class="desc">${u.desc}</div>
+            <button class="buy" data-id="${u.id}">Buy</button>
+          </div>`).join("");
+      }
+      UPGRADES.forEach((u) => {
+        const row = el.shop.querySelector(`[data-upgrade="${u.id}"]`);
+        const cost = costOf(u);
+        const n = ownedOf(u.id);
+        const stars = Math.floor(n / MILESTONE);
+        const until = MILESTONE - (n % MILESTONE);
+        row.querySelector(".owned").textContent = stars ? `x${n} · ${stars}★` : `x${n}`;
+        const reward = nextIsReward(u.id);
+        row.querySelector(".desc").textContent = reward
+          ? `${u.desc} Reward buy: ${MILESTONE_MULT}x effect.`
+          : `${u.desc} Bonus in ${until}.`;
+        const btn = row.querySelector(".buy");
+        btn.classList.toggle("reward", reward);
+        btn.textContent = (reward ? "Reward · " : "Buy · ") + fmt(cost);
+        btn.disabled = state.rocks < cost;
+      });
+    }
+
+    function render() {
+      syncMiners();
+      syncPlaceables();
+      renderStats();
+      renderShop();
+      renderLands();
+    }
+
+    function burst(x, y, amount) {
+      const float = document.createElement("div");
+      float.className = "float";
+      float.textContent = "+" + fmt(amount);
+      float.style.left = x + "px";
+      float.style.top = y + "px";
+      el.floats.appendChild(float);
+      setTimeout(() => float.remove(), 700);
+
+      for (let i = 0; i < 8; i++) {
+        const chip = document.createElement("div");
+        chip.className = "chip";
+        const angle = (Math.PI * 2 * i) / 8;
+        const dist = 28 + Math.random() * 36;
+        chip.style.left = x + "px";
+        chip.style.top = y + "px";
+        chip.style.setProperty("--dx", Math.cos(angle) * dist + "px");
+        chip.style.setProperty("--dy", Math.sin(angle) * dist + "px");
+        el.particles.appendChild(chip);
+        setTimeout(() => chip.remove(), 500);
+      }
+    }
+
+    function clickRock(event) {
+      if (suppressClick) return;
+      const amount = perClick();
+      addRocks(amount);
+      el.rock.classList.remove("hit");
+      void el.rock.offsetWidth;
+      el.rock.classList.add("hit");
+      const rect = document.getElementById("arena").getBoundingClientRect();
+      const x = (event.clientX || rect.left + rect.width / 2) - rect.left;
+      const y = (event.clientY || rect.top + rect.height / 2) - rect.top;
+      burst(x, y, amount);
+      render();
+    }
+
+    function buy(id) {
+      const u = UPGRADES.find((item) => item.id === id);
+      const cost = costOf(u);
+      if (state.rocks < cost) return;
+      state.rocks -= cost;
+      addOwned(u.id);
+      render();
+      save();
+    }
+
+    function save() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify({ ...state, savedAt: Date.now() }));
+    }
+
+    function load() {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        state.rocks = data.rocks || 0;
+        state.total = data.total || 0;
+        state.owned = { ...state.owned, ...(data.owned || {}) };
+        state.unlockedLands = data.unlockedLands?.length ? data.unlockedLands : ["pebble"];
+        state.activeLand = state.unlockedLands.includes(data.activeLand) ? data.activeLand : "pebble";
+        state.landStats = data.landStats || {};
+        landBag("pebble");
+        UPGRADES.filter((u) => !isClickUpgrade(u.id)).forEach((u) => {
+          const leftover = Number(data.owned?.[u.id]) || 0;
+          const pebble = landBag("pebble");
+          const hasOnALand = Object.values(state.landStats).some((bag) => (Number(bag.owned?.[u.id]) || 0) > 0);
+          if (leftover && !hasOnALand) pebble.owned[u.id] = leftover;
+          state.owned[u.id] = isClickUpgrade(u.id) ? (data.owned?.[u.id] || 0) : 0;
+        });
+        if (!data.landStats) {
+          const bag = landBag("pebble");
+          bag.placed = { ...(data.placed || {}) };
+          if (data.placedDrills > 0) bag.placed.drill = true;
+        }
+        if (data.savedAt) {
+          const elapsed = Math.min(60 * 60 * 8, (Date.now() - data.savedAt) / 1000);
+          addRocks(perSec() * elapsed);
+        }
+      } catch (_) {}
+    }
+
+    el.rock.addEventListener("click", clickRock);
+    el.rock.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        clickRock(e);
+      }
+    });
+    el.shop.addEventListener("click", (e) => {
+      const unlock = e.target.closest("[data-unlock]");
+      if (unlock) {
+        unlockLand(unlock.dataset.unlock);
+        return;
+      }
+      const btn = e.target.closest("[data-id]");
+      if (btn) buy(btn.dataset.id);
+    });
+    el.lands.addEventListener("click", (e) => {
+      const unlock = e.target.closest("[data-unlock]");
+      if (unlock) {
+        unlockLand(unlock.dataset.unlock);
+        return;
+      }
+      const card = e.target.closest("[data-land]");
+      if (card) {
+        state.activeLand = card.dataset.land;
+        render();
+        save();
+      }
+    });
+    el.saveBtn.addEventListener("click", () => { save(); el.saveBtn.textContent = "Saved"; setTimeout(() => el.saveBtn.textContent = "Save", 900); });
+    el.resetBtn.addEventListener("click", () => {
+      if (!confirm("Wipe this quarry?")) return;
+      localStorage.removeItem(SAVE_KEY);
+      state.rocks = 0;
+      state.total = 0;
+      Object.keys(state.owned).forEach((k) => state.owned[k] = 0);
+      state.landStats = {};
+      state.unlockedLands = ["pebble"];
+      state.activeLand = "pebble";
+      render();
+    });
+
+    let suppressClick = false;
+    let dragging = null;
+
+    function endDrag(clientX, clientY) {
+      if (!dragging) return;
+      const id = dragging.id;
+      const rect = el.arena.getBoundingClientRect();
+      const over = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+      dragging.ghost.remove();
+      dragging = null;
+      el.arena.classList.remove("drop-ready");
+      window.removeEventListener("pointermove", onDragMove);
+      window.removeEventListener("pointerup", onDragUp);
+      window.removeEventListener("pointercancel", onDragUp);
+      if (over && id) {
+        suppressClick = true;
+        placeGear(id);
+        setTimeout(() => { suppressClick = false; }, 200);
+      }
+    }
+
+    function onDragMove(e) {
+      if (!dragging) return;
+      dragging.ghost.style.left = e.clientX + "px";
+      dragging.ghost.style.top = e.clientY + "px";
+      const rect = el.arena.getBoundingClientRect();
+      const over = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+      el.arena.classList.toggle("drop-ready", over);
+    }
+
+    function onDragUp(e) {
+      endDrag(e.clientX, e.clientY);
+    }
+
+    el.traySlots.addEventListener("pointerdown", (e) => {
+      const icon = e.target.closest("[data-gear]");
+      if (!icon) return;
+      const id = icon.dataset.gear;
+      const item = PLACEABLES.find((p) => p.id === id);
+      if (!item) return;
+      e.preventDefault();
+      const ghost = document.createElement("div");
+      ghost.className = "drag-ghost";
+      ghost.innerHTML = item.markup(ownedOf(item.upgradeId));
+      ghost.style.left = e.clientX + "px";
+      ghost.style.top = e.clientY + "px";
+      document.body.appendChild(ghost);
+      dragging = { ghost, id };
+      window.addEventListener("pointermove", onDragMove);
+      window.addEventListener("pointerup", onDragUp);
+      window.addEventListener("pointercancel", onDragUp);
+    });
+
+    window.addEventListener("resize", layoutMiners);
+
+    load();
+    render();
+    let last = performance.now();
+    function tick(now) {
+      const dt = Math.min(1, (now - last) / 1000);
+      last = now;
+      const rate = perSec();
+      if (rate > 0) addRocks(rate * dt);
+      renderStats();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    setInterval(() => {
+      renderShop();
+      const nxt = nextLand();
+      if (!nxt) return;
+      document.querySelectorAll("[data-unlock]").forEach((btn) => {
+        btn.disabled = state.rocks < nxt.cost;
+        btn.textContent = "Unlock · " + fmt(nxt.cost);
+      });
+    }, 250);
+    setInterval(save, 8000);
+  </script>
+</body>
+</html>
