@@ -785,23 +785,27 @@
     const MILESTONE = 5;
     const MILESTONE_MULT = 5;
     const COPY_GROWTH = 1.14;
+    const CLICK_COPY_GROWTH = 1.06;
+    const CLICK_MILESTONE_MULT = 2;
 
     const isMilestone = (n) => n > 0 && n % MILESTONE === 0;
     const nextIsReward = (id) => isMilestone(ownedOf(id) + 1);
 
-    function copyPower(i) {
-      let power = Math.pow(COPY_GROWTH, Math.max(0, i - 1));
+    function copyPower(i, click = false) {
+      const growth = click ? CLICK_COPY_GROWTH : COPY_GROWTH;
+      let power = Math.pow(growth, Math.max(0, i - 1));
       if (isMilestone(i)) {
         const star = i / MILESTONE;
-        power *= MILESTONE_MULT * (1 + (star - 1) * 0.4);
+        if (click) power *= CLICK_MILESTONE_MULT * (1 + (star - 1) * 0.15);
+        else power *= MILESTONE_MULT * (1 + (star - 1) * 0.4);
       }
       return power;
     }
 
-    function scaledStat(perLevel, owned) {
+    function scaledStat(perLevel, owned, click = false) {
       if (!perLevel || owned <= 0) return 0;
       let total = 0;
-      for (let i = 1; i <= owned; i++) total += perLevel * copyPower(i);
+      for (let i = 1; i <= owned; i++) total += perLevel * copyPower(i, click);
       return total;
     }
 
@@ -815,7 +819,7 @@
       if (!isClickUpgrade(u.id)) raw *= autoCostMult();
       return Math.max(1, Math.floor(raw));
     };
-    const perClick = () => (1 + UPGRADES.reduce((s, u) => s + scaledStat(u.click, ownedOf(u.id)), 0)) * landMult();
+    const perClick = () => (1 + UPGRADES.reduce((s, u) => s + scaledStat(u.click, ownedOf(u.id), true), 0)) * landMult();
     const unusedPlaceable = (id) => ownedOf(id) > 0 && !landBag().placed[id];
     function placeableAuto(landId) {
       const bag = landBag(landId);
@@ -1104,7 +1108,7 @@
         const until = MILESTONE - (n % MILESTONE);
         row.querySelector(".owned").textContent = stars ? `x${n} · ${stars}★` : `x${n}`;
         const reward = nextIsReward(u.id);
-        const nextPower = copyPower(n + 1);
+        const nextPower = copyPower(n + 1, isClickUpgrade(u.id));
         const hike = !isClickUpgrade(u.id) && autoCostMult() > 1
           ? ` Auto prices +${Math.round((autoCostMult() - 1) * 100)}% on this rock.`
           : "";
