@@ -529,7 +529,7 @@
           <strong id="perClick">1</strong>
         </div>
         <div class="stat">
-          <label>Per second</label>
+          <label>All lands / sec</label>
           <strong id="perSec">0</strong>
         </div>
       </div>
@@ -598,11 +598,11 @@
     const SAVE_KEY = "rock-clicker-v1";
     const LANDS = [
       { id: "pebble", name: "Pebble pit", cost: 0, mult: 1, colors: ["#9aa3b2", "#6d737e", "#3f444c"] },
-      { id: "granite", name: "Granite shelf", cost: 800, mult: 1.75, colors: ["#b8c0c8", "#7a838c", "#4a5158"] },
-      { id: "quartz", name: "Quartz vein", cost: 9000, mult: 2.75, colors: ["#d7ecec", "#8bb8b8", "#4f6f70"] },
-      { id: "gold", name: "Gold seam", cost: 85000, mult: 4.25, colors: ["#f3d27a", "#c4922e", "#6e4b16"] },
-      { id: "obsidian", name: "Obsidian core", cost: 750000, mult: 6.5, colors: ["#6a5a78", "#2d2438", "#120e18"] },
-      { id: "meteor", name: "Meteorite", cost: 6500000, mult: 10, colors: ["#c9d4e8", "#5b6d88", "#1c2430"] }
+      { id: "granite", name: "Granite shelf", cost: 1400, mult: 1.75, colors: ["#b8c0c8", "#7a838c", "#4a5158"] },
+      { id: "quartz", name: "Quartz vein", cost: 15750, mult: 2.75, colors: ["#d7ecec", "#8bb8b8", "#4f6f70"] },
+      { id: "gold", name: "Gold seam", cost: 148750, mult: 4.25, colors: ["#f3d27a", "#c4922e", "#6e4b16"] },
+      { id: "obsidian", name: "Obsidian core", cost: 1312500, mult: 6.5, colors: ["#6a5a78", "#2d2438", "#120e18"] },
+      { id: "meteor", name: "Meteorite", cost: 11375000, mult: 10, colors: ["#c9d4e8", "#5b6d88", "#1c2430"] }
     ];
 
     const UPGRADES = [
@@ -650,9 +650,9 @@
       return bag;
     }
 
-    function ownedOf(id) {
+    function ownedOf(id, land) {
       if (isClickUpgrade(id)) return Number(state.owned[id]) || 0;
-      return Number(landBag(state.activeLand).owned[id]) || 0;
+      return Number(landBag(land == null ? state.activeLand : land).owned[id]) || 0;
     }
 
     function addOwned(id) {
@@ -808,10 +808,19 @@
     };
     const perClick = () => (1 + UPGRADES.reduce((s, u) => s + scaledStat(u.click, ownedOf(u.id)), 0)) * landMult();
     const unusedPlaceable = (id) => ownedOf(id) > 0 && !landBag().placed[id];
-    const placeableAuto = () => PLACEABLES.reduce((s, p) => (
-      landBag().placed[p.id] ? s + scaledStat(p.auto, ownedOf(p.upgradeId)) : s
-    ), 0);
-    const perSec = () => (UPGRADES.reduce((s, u) => s + scaledStat(u.auto, ownedOf(u.id)), 0) + placeableAuto()) * landMult();
+    function placeableAuto(landId) {
+      const bag = landBag(landId);
+      return PLACEABLES.reduce((s, p) => (
+        bag.placed[p.id] ? s + scaledStat(p.auto, ownedOf(p.upgradeId, landId)) : s
+      ), 0);
+    }
+    function landIncome(landId) {
+      const land = LANDS.find((l) => l.id === landId);
+      if (!land) return 0;
+      const auto = UPGRADES.reduce((s, u) => s + scaledStat(u.auto, ownedOf(u.id, landId)), 0) + placeableAuto(landId);
+      return auto * land.mult;
+    }
+    const perSec = () => (state.unlockedLands || ["pebble"]).reduce((s, id) => s + landIncome(id), 0);
     const activeLand = () => LANDS.find((l) => l.id === state.activeLand) || LANDS[0];
     const landMult = () => activeLand().mult;
     const nextLand = () => LANDS.find((l) => !state.unlockedLands.includes(l.id));
@@ -1016,7 +1025,7 @@
           return `<button type="button" class="land-card ${active ? "active" : ""}" data-land="${land.id}">
             <div class="swatch" style="background:${swatch(land)}"></div>
             <div class="name">${land.name}</div>
-            <div class="meta">x${land.mult} income</div>
+            <div class="meta">x${land.mult} · ${fmt(landIncome(land.id))}/s</div>
           </button>`;
         }
         const canBuy = nxt && nxt.id === land.id;
@@ -1038,7 +1047,7 @@
         <div class="upgrade">
           <div class="name">${nxt.name}</div>
           <div class="owned">x${nxt.mult}</div>
-          <div class="desc">Click tools stay. Crew, carts, drills, and other land tools start fresh here. Old lands keep theirs.</div>
+          <div class="desc">Click tools stay. Land tools start fresh here. Unlocked rocks keep earning even when you leave them.</div>
           <button class="buy" data-unlock="${nxt.id}" ${can ? "" : "disabled"}>Unlock · ${fmt(nxt.cost)}</button>
         </div>`;
     }
