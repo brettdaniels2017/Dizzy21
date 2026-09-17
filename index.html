@@ -607,13 +607,13 @@
 
     const UPGRADES = [
       { id: "pick", name: "Stone pick", desc: "+0.4 per click", base: 12, pow: 1.38, click: 0.4, auto: 0 },
-      { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Places a crew mill and walking miners.", base: 35, pow: 1.36, click: 0, auto: 0.2 },
+      { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Places a crew mill and walking miners.", base: 53, pow: 1.36, click: 0, auto: 0.2 },
       { id: "hammer", name: "Sledge line", desc: "+1.5 per click", base: 150, pow: 1.4, click: 1.5, auto: 0 },
-      { id: "cart", name: "Mine carts", desc: "+1.2 / sec", base: 900, pow: 1.35, click: 0, auto: 1.2 },
-      { id: "drill", name: "Bore drill", desc: "One drill. First buy is placeable; later buys upgrade it.", base: 4500, pow: 1.38, click: 0, auto: 0 },
-      { id: "blast", name: "Powder charges", desc: "+8 / sec", base: 18000, pow: 1.37, click: 0, auto: 8 },
+      { id: "cart", name: "Mine carts", desc: "+1.2 / sec", base: 1350, pow: 1.35, click: 0, auto: 1.2 },
+      { id: "drill", name: "Bore drill", desc: "One drill. First buy is placeable; later buys upgrade it.", base: 6750, pow: 1.38, click: 0, auto: 0 },
+      { id: "blast", name: "Powder charges", desc: "+8 / sec", base: 27000, pow: 1.37, click: 0, auto: 8 },
       { id: "laser", name: "Beam cutter", desc: "+35 per click", base: 140000, pow: 1.45, click: 35, auto: 0 },
-      { id: "orbit", name: "Orbital quarry", desc: "+50 / sec", base: 620000, pow: 1.42, click: 0, auto: 50 }
+      { id: "orbit", name: "Orbital quarry", desc: "+50 / sec", base: 930000, pow: 1.42, click: 0, auto: 50 }
     ];
 
     const state = {
@@ -825,13 +825,11 @@
     const activeLand = () => LANDS.find((l) => l.id === state.activeLand) || LANDS[0];
     const landMult = () => activeLand().mult;
     const nextLand = () => LANDS.find((l) => !state.unlockedLands.includes(l.id));
-    const AUTO_COST_STEPS = [1, 1.55, 1.6, 1.65, 1.7, 1.75];
+    const AUTO_COST_STEP = 1.5;
     function autoCostMult(id) {
       const key = landId(id == null ? state.activeLand : id);
       const idx = Math.max(0, LANDS.findIndex((l) => l.id === key));
-      let m = 1;
-      for (let i = 1; i <= idx && i < AUTO_COST_STEPS.length; i++) m *= AUTO_COST_STEPS[i];
-      return m;
+      return Math.pow(AUTO_COST_STEP, idx);
     }
     const cartTier = () => visualTier(ownedOf("cart"));
     const WALKER_COLORS = ["#4a6d8c", "#5c6570", "#c9a24a", "#e6b84d", "#7eb8c9"];
