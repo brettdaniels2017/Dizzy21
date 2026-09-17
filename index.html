@@ -803,8 +803,9 @@
       const pow = 1.1 + (u.pow - 1.1) * t;
       const extra = 0.15 + 1.1 * t;
       const starter = 0.55 + 0.45 * t;
-      const raw = u.base * starter * Math.pow(pow, n) * Math.pow(n + 1, extra);
-      return Math.max(1, Math.floor(raw * 0.8));
+      let raw = u.base * starter * Math.pow(pow, n) * Math.pow(n + 1, extra) * 0.8;
+      if (!isClickUpgrade(u.id)) raw *= autoCostMult();
+      return Math.max(1, Math.floor(raw));
     };
     const perClick = () => (1 + UPGRADES.reduce((s, u) => s + scaledStat(u.click, ownedOf(u.id)), 0)) * landMult();
     const unusedPlaceable = (id) => ownedOf(id) > 0 && !landBag().placed[id];
@@ -824,6 +825,14 @@
     const activeLand = () => LANDS.find((l) => l.id === state.activeLand) || LANDS[0];
     const landMult = () => activeLand().mult;
     const nextLand = () => LANDS.find((l) => !state.unlockedLands.includes(l.id));
+    const AUTO_COST_STEPS = [1, 1.55, 1.6, 1.65, 1.7, 1.75];
+    function autoCostMult(id) {
+      const key = landId(id == null ? state.activeLand : id);
+      const idx = Math.max(0, LANDS.findIndex((l) => l.id === key));
+      let m = 1;
+      for (let i = 1; i <= idx && i < AUTO_COST_STEPS.length; i++) m *= AUTO_COST_STEPS[i];
+      return m;
+    }
     const cartTier = () => visualTier(ownedOf("cart"));
     const WALKER_COLORS = ["#4a6d8c", "#5c6570", "#c9a24a", "#e6b84d", "#7eb8c9"];
 
@@ -1089,9 +1098,12 @@
         const until = MILESTONE - (n % MILESTONE);
         row.querySelector(".owned").textContent = stars ? `x${n} · ${stars}★` : `x${n}`;
         const reward = nextIsReward(u.id);
-        row.querySelector(".desc").textContent = reward
+        const hike = !isClickUpgrade(u.id) && autoCostMult() > 1
+          ? ` Auto prices +${Math.round((autoCostMult() - 1) * 100)}% on this rock.`
+          : "";
+        row.querySelector(".desc").textContent = (reward
           ? `${u.desc} Reward buy: ${MILESTONE_MULT}x effect.`
-          : `${u.desc} Bonus in ${until}.`;
+          : `${u.desc} Bonus in ${until}.`) + hike;
         const btn = row.querySelector(".buy");
         btn.classList.toggle("reward", reward);
         btn.textContent = (reward ? "Reward · " : "Buy · ") + fmt(cost);
