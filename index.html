@@ -783,27 +783,35 @@
     };
 
     const MILESTONE = 5;
-    const MILESTONE_MULT = 4;
+    const MILESTONE_MULT = 5;
+    const COPY_GROWTH = 1.14;
 
     const isMilestone = (n) => n > 0 && n % MILESTONE === 0;
     const nextIsReward = (id) => isMilestone(ownedOf(id) + 1);
 
+    function copyPower(i) {
+      let power = Math.pow(COPY_GROWTH, Math.max(0, i - 1));
+      if (isMilestone(i)) {
+        const star = i / MILESTONE;
+        power *= MILESTONE_MULT * (1 + (star - 1) * 0.4);
+      }
+      return power;
+    }
+
     function scaledStat(perLevel, owned) {
       if (!perLevel || owned <= 0) return 0;
       let total = 0;
-      for (let i = 1; i <= owned; i++) {
-        total += perLevel * (isMilestone(i) ? MILESTONE_MULT : 1);
-      }
+      for (let i = 1; i <= owned; i++) total += perLevel * copyPower(i);
       return total;
     }
 
     const costOf = (u) => {
       const n = ownedOf(u.id);
-      const t = Math.min(1, n / 10);
-      const pow = 1.1 + (u.pow - 1.1) * t;
-      const extra = 0.15 + 1.1 * t;
+      const t = Math.min(1, n / 16);
+      const pow = 1.08 + (u.pow - 1.12) * t;
+      const extra = 0.12 + 0.5 * t;
       const starter = 0.55 + 0.45 * t;
-      let raw = u.base * starter * Math.pow(pow, n) * Math.pow(n + 1, extra) * 0.8;
+      let raw = u.base * starter * Math.pow(Math.max(1.08, pow), n) * Math.pow(n + 1, extra) * 0.8;
       if (!isClickUpgrade(u.id)) raw *= autoCostMult();
       return Math.max(1, Math.floor(raw));
     };
@@ -1096,12 +1104,13 @@
         const until = MILESTONE - (n % MILESTONE);
         row.querySelector(".owned").textContent = stars ? `x${n} · ${stars}★` : `x${n}`;
         const reward = nextIsReward(u.id);
+        const nextPower = copyPower(n + 1);
         const hike = !isClickUpgrade(u.id) && autoCostMult() > 1
           ? ` Auto prices +${Math.round((autoCostMult() - 1) * 100)}% on this rock.`
           : "";
         row.querySelector(".desc").textContent = (reward
-          ? `${u.desc} Reward buy: ${MILESTONE_MULT}x effect.`
-          : `${u.desc} Bonus in ${until}.`) + hike;
+          ? `${u.desc} Reward buy: ${nextPower.toFixed(1)}x a first copy.`
+          : `${u.desc} Next copy ${nextPower.toFixed(1)}x. Bonus in ${until}.`) + hike;
         const btn = row.querySelector(".buy");
         btn.classList.toggle("reward", reward);
         btn.textContent = (reward ? "Reward · " : "Buy · ") + fmt(cost);
