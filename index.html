@@ -182,7 +182,7 @@
       to { transform: rotate(360deg); }
     }
 
-    .particles, .floats, .miners, .rail {
+    .particles, .floats, .miners, .walkers, .rail {
       position: absolute;
       inset: 0;
       pointer-events: none;
@@ -198,11 +198,9 @@
 
     .rail.visible { opacity: 1; }
 
-    .factory {
+    .factory, .crew-mill {
       position: absolute;
-      left: 10px;
       bottom: 10px;
-      width: 72px;
       opacity: 0;
       transform: translateY(6px);
       transition: opacity 280ms ease, transform 280ms ease;
@@ -211,19 +209,39 @@
       filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
     }
 
-    .factory.visible {
+    .factory {
+      left: 10px;
+      width: 72px;
+    }
+
+    .crew-mill {
+      right: 10px;
+      width: 78px;
+    }
+
+    .factory.visible, .crew-mill.visible {
       opacity: 1;
       transform: none;
     }
 
-    .factory .smoke {
+    .factory .smoke, .crew-mill .lantern {
       transform-origin: 44px 8px;
       animation: puff 1.8s ease-out infinite;
+    }
+
+    .crew-mill .lantern {
+      transform-origin: 14px 18px;
+      animation: glow 1.4s ease-in-out infinite;
     }
 
     @keyframes puff {
       0% { opacity: 0.7; transform: translateY(0) scale(0.6); }
       100% { opacity: 0; transform: translateY(-10px) scale(1.25); }
+    }
+
+    @keyframes glow {
+      0%, 100% { opacity: 0.45; }
+      50% { opacity: 1; }
     }
 
     .miner {
@@ -238,7 +256,7 @@
       filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
     }
 
-    .miner svg {
+    .miner svg, .walker svg {
       display: block;
       width: 100%;
     }
@@ -247,9 +265,31 @@
       animation: cargo 3.2s ease-in-out infinite;
     }
 
+    .walker {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 18px;
+      z-index: 7;
+      offset-rotate: 0deg;
+      offset-anchor: 50% 80%;
+      animation: haul 3.6s ease-in-out infinite;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+    }
+
+    .walker svg {
+      animation: face 3.6s ease-in-out infinite;
+    }
+
     @keyframes haul {
       0%, 100% { offset-distance: 0%; }
       42%, 50% { offset-distance: 100%; }
+    }
+
+    @keyframes face {
+      0%, 42% { transform: scaleX(-1); }
+      50%, 92% { transform: scaleX(1); }
+      100% { transform: scaleX(-1); }
     }
 
     @keyframes cargo {
@@ -498,6 +538,7 @@
         <div class="floats" id="floats"></div>
         <svg class="rail" id="rail" aria-hidden="true"></svg>
         <div class="miners" id="miners"></div>
+        <div class="walkers" id="walkers"></div>
         <svg id="rock" class="rock" viewBox="0 0 200 180" role="button" aria-label="Click the rock" tabindex="0">
           <defs>
             <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
@@ -522,6 +563,15 @@
           <rect x="24" y="30" width="8" height="8" fill="#7eb8c9" opacity="0.55" />
           <rect x="14" y="40" width="10" height="10" fill="#1c222c" />
           <rect x="48" y="34" width="12" height="16" fill="#2e3644" stroke="#1c222c" stroke-width="1.5" />
+        </svg>
+        <svg class="crew-mill" id="crewMill" viewBox="0 0 72 56" aria-hidden="true">
+          <path d="M8 28 L36 6 L64 28 Z" fill="#6b4a2a" stroke="#2a1c12" stroke-width="2" />
+          <rect x="12" y="28" width="48" height="22" fill="#8a6238" stroke="#2a1c12" stroke-width="2" />
+          <rect x="30" y="34" width="12" height="16" fill="#2a1c12" />
+          <rect x="18" y="34" width="8" height="8" fill="#3d6b3a" opacity="0.85" />
+          <circle class="lantern" cx="14" cy="18" r="3.2" fill="#f4e08a" />
+          <path d="M52 40 L62 28" stroke="#c9a24a" stroke-width="2" />
+          <path d="M58 28 L66 32 L58 36" fill="#c9a24a" />
         </svg>
         <div class="mounted-drills" id="mountedDrills"></div>
       </div>
@@ -557,7 +607,7 @@
 
     const UPGRADES = [
       { id: "pick", name: "Stone pick", desc: "+0.4 per click", base: 12, pow: 1.38, click: 0.4, auto: 0 },
-      { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Carts upgrade as you buy more.", base: 35, pow: 1.36, click: 0, auto: 0.2 },
+      { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Places a crew mill and walking miners.", base: 35, pow: 1.36, click: 0, auto: 0.2 },
       { id: "hammer", name: "Sledge line", desc: "+1.5 per click", base: 150, pow: 1.4, click: 1.5, auto: 0 },
       { id: "cart", name: "Mine carts", desc: "+1.2 / sec", base: 900, pow: 1.35, click: 0, auto: 1.2 },
       { id: "drill", name: "Bore drill", desc: "One drill. First buy is placeable; later buys upgrade it.", base: 4500, pow: 1.38, click: 0, auto: 0 },
@@ -712,7 +762,9 @@
       particles: document.getElementById("particles"),
       floats: document.getElementById("floats"),
       miners: document.getElementById("miners"),
+      walkers: document.getElementById("walkers"),
       factory: document.getElementById("factory"),
+      crewMill: document.getElementById("crewMill"),
       rail: document.getElementById("rail"),
       arena: document.getElementById("arena"),
       traySlots: document.getElementById("traySlots"),
@@ -764,6 +816,27 @@
     const landMult = () => activeLand().mult;
     const nextLand = () => LANDS.find((l) => !state.unlockedLands.includes(l.id));
     const cartTier = () => visualTier(ownedOf("cart"));
+    const WALKER_COLORS = ["#4a6d8c", "#5c6570", "#c9a24a", "#e6b84d", "#7eb8c9"];
+
+    function walkerMarkup(n) {
+      const shirt = WALKER_COLORS[visualTier(n)];
+      return `
+        <svg viewBox="0 0 16 20" aria-hidden="true">
+          <circle cx="8" cy="4" r="2.4" fill="#e8c39a" />
+          <rect x="5.2" y="6.4" width="5.6" height="6.2" rx="1" fill="${shirt}" />
+          <rect x="5.6" y="12.4" width="2" height="5.4" fill="#3a3330" />
+          <rect x="8.4" y="12.4" width="2" height="5.4" fill="#3a3330" />
+          <path d="M11 8 L15 5" stroke="#8b949e" stroke-width="1.4" />
+          <path d="M13.4 4.2 L16 6.2 L13.8 7" fill="#c9a24a" />
+        </svg>`;
+    }
+
+    function crewPath(w, h) {
+      const p0 = { x: w - 42, y: h - 22 };
+      const p1 = { x: w * 0.72, y: h - 28 };
+      const p2 = { x: w * 0.54, y: h * 0.52 };
+      return `M ${p0.x} ${p0.y} Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`;
+    }
     const RAIL_COLORS = ["#8a9098", "#9aa3ae", "#c9a24a", "#e6b84d", "#7eb8c9"];
 
     function railPoints(w, h) {
@@ -831,34 +904,67 @@
       });
     }
 
+    function layoutWalkers() {
+      const w = el.arena.clientWidth;
+      const h = el.arena.clientHeight;
+      if (!w || !h || !el.walkers) return;
+      const d = crewPath(w, h);
+      el.walkers.querySelectorAll(".walker").forEach((node) => {
+        node.style.offsetPath = `path("${d}")`;
+      });
+    }
+
     function syncMiners() {
       const crew = ownedOf("crew");
       const carts = ownedOf("cart");
-      const showFactory = crew > 0;
+      const showCartFactory = carts > 0;
+      const showCrewMill = crew > 0;
       const showRail = carts > 0;
       const tier = cartTier();
-      const key = [landId(state.activeLand), crew, carts, tier].join("-");
+      const walkers = showCrewMill ? Math.min(5, Math.max(1, Math.ceil(crew / 2))) : 0;
+      const key = [landId(state.activeLand), crew, carts, tier, walkers].join("-");
       if (el.factory) {
-        el.factory.setAttribute("class", showFactory ? "factory visible" : "factory");
-        el.factory.style.opacity = showFactory ? "1" : "0";
+        el.factory.setAttribute("class", showCartFactory ? "factory visible" : "factory");
+        el.factory.style.opacity = showCartFactory ? "1" : "0";
+      }
+      if (el.crewMill) {
+        el.crewMill.setAttribute("class", showCrewMill ? "crew-mill visible" : "crew-mill");
+        el.crewMill.style.opacity = showCrewMill ? "1" : "0";
       }
       if (el.rail) {
         el.rail.setAttribute("class", showRail ? "rail visible" : "rail");
         el.rail.style.opacity = showRail ? "1" : "0";
       }
-      if (!el.miners) return;
+      if (!el.miners || !el.walkers) return;
       if (el.miners.dataset.key === key) {
         if (showRail) layoutMiners();
+        if (walkers) layoutWalkers();
         return;
       }
       el.miners.dataset.key = key;
       el.miners.innerHTML = "";
-      if (!showRail) return;
-      const node = document.createElement("div");
-      node.className = "miner";
-      node.innerHTML = CARTS[tier] || CARTS[0];
-      el.miners.appendChild(node);
-      layoutMiners();
+      el.walkers.innerHTML = "";
+      if (showRail) {
+        const node = document.createElement("div");
+        node.className = "miner";
+        node.innerHTML = CARTS[tier] || CARTS[0];
+        el.miners.appendChild(node);
+        layoutMiners();
+      }
+      for (let i = 0; i < walkers; i++) {
+        const node = document.createElement("div");
+        node.className = "walker";
+        node.style.animationDelay = (i * 0.55) + "s";
+        node.style.animationDuration = (3.2 + (i % 3) * 0.35) + "s";
+        node.innerHTML = walkerMarkup(crew);
+        const svg = node.querySelector("svg");
+        if (svg) {
+          svg.style.animationDuration = node.style.animationDuration;
+          svg.style.animationDelay = node.style.animationDelay;
+        }
+        el.walkers.appendChild(node);
+      }
+      if (walkers) layoutWalkers();
     }
 
     function syncPlaceables() {
@@ -1169,7 +1275,7 @@
       window.addEventListener("pointercancel", onDragUp);
     });
 
-    window.addEventListener("resize", layoutMiners);
+    window.addEventListener("resize", () => { layoutMiners(); layoutWalkers(); });
 
     load();
     render();
