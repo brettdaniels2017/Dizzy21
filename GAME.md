@@ -17,12 +17,12 @@ Local play: open `index.html` or serve the folder (Ruby `httpd` on port 8000 was
 - **Chip crew:** wooden mill on the **right**, small walking miners with picks. Shirt color uses crew visual tiers. Up to 5 walkers.
 - **Mine carts:** metal depot on the **left**, rail, one cart that upgrades in color with cart level. Not the same building as the mill.
 - **Bore drill / Excavator:** first buy goes to the gear rack. Drag near the rock to place; drop position is kept. Drag a placed tool to move it. Extra buys upgrade the same tool. Save ids stay `drill` / `blast`. Excavator truck still hauls to the factory from wherever you park it.
-- **Active rock face:** each land paints ore on the boulder (coal chunks, granite speckles, quartz crystals, diamonds, glassy obsidian, pitted meteorite). Land cards use matching swatches. Save ids stay `pebble` / `gold`.
+- **Outdoor pit:** rocks sit in a field, not a cave. Coal / Quartz / Obsidian use a green meadow and blue sky; Granite / Diamond / Meteorite use the other outdoor set (overcast pasture, golden hour, night meadow).
 
 ## Economy (current intent)
 
 - Shop costs use `costOf`: early copies cheaper (`starter`, slow `pow`), then exponential. Idle tools also × `autoCostMult()`.
-- Idle tool **base prices** are +50% vs the old pebble bases. Each later land multiplies idle-tool prices by a **flat 1.5** (`Math.pow(1.5, landIndex)`). Works for future lands. Click tools ignore this.
+- Idle tool **base prices** are +50% vs the old pebble bases. Each later land’s **starting** idle-tool prices are **100% more** than the previous rock (`Math.pow(2, landIndex)`). Copy-to-copy price percentages on that land stay the same. Click tools ignore this.
 - Land **unlock** prices were raised **75%** (Granite 1400, Quartz 15750, Diamond mine 148750, Obsidian 1.3125M, Meteorite 11.375M).
 - **Rewards:** idle copies still use `copyPower` at 14% compounding; every 5th is a 5× reward (later 5ths bigger). **Click tools** (pick / sledge / laser) use a milder curve: 6% compounding and 2× milestones that grow slowly, so per-click stays progressive without the old exponential spike. Shop shows next copy vs a first copy. Late prices were eased (`n/16`, lower extra exponent) so cost doesn’t outrun payout as hard.
 - Idle of a land = (that land’s auto tools + placed drill/excavator) × land.mult.
