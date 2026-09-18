@@ -189,6 +189,36 @@
 
     .pit-set .sun { animation: glow 3.2s ease-in-out infinite; }
     .pit-set .cloud { animation: glow 5s ease-in-out infinite; }
+    .pit-set .land-detail { display: none; }
+
+    .rock-wrap[data-land="pebble"] .detail-pebble,
+    .rock-wrap[data-land="granite"] .detail-granite,
+    .rock-wrap[data-land="quartz"] .detail-quartz,
+    .rock-wrap[data-land="gold"] .detail-gold,
+    .rock-wrap[data-land="obsidian"] .detail-obsidian,
+    .rock-wrap[data-land="meteor"] .detail-meteor { display: block; }
+
+    .detail-quartz .crystal-glow,
+    .detail-gold .diamond-glow { animation: landmarkGlow 2.4s ease-in-out infinite; }
+    .detail-obsidian .volcano-smoke { animation: volcanoPuff 4s ease-out infinite; }
+    .detail-meteor .meteor-streak { animation: meteorStreak 4.8s ease-in infinite; }
+
+    @keyframes landmarkGlow {
+      0%, 100% { opacity: 0.42; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes volcanoPuff {
+      0% { opacity: 0; transform: translateY(4px) scale(0.7); }
+      35% { opacity: 0.48; }
+      100% { opacity: 0; transform: translateY(-14px) scale(1.35); }
+    }
+
+    @keyframes meteorStreak {
+      0%, 68% { opacity: 0; transform: translate(28px, -18px); }
+      72% { opacity: 0.9; }
+      88%, 100% { opacity: 0; transform: translate(-74px, 48px); }
+    }
 
     .rock-wrap .scene-alt,
     .rock-wrap[data-land="granite"] .scene-field,
@@ -274,6 +304,15 @@
     .mounted-tool .bit {
       transform-origin: 24px 12px;
       animation: bore 0.18s linear infinite;
+    }
+
+    .excavator-heavy .heavy-beacon {
+      animation: heavyBeacon 0.85s ease-in-out infinite;
+    }
+
+    @keyframes heavyBeacon {
+      0%, 100% { opacity: 0.35; }
+      50% { opacity: 1; filter: drop-shadow(0 0 4px #ffe66d); }
     }
 
     @keyframes bore {
@@ -386,7 +425,7 @@
       filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
     }
 
-    .miner svg, .walker svg {
+    .miner svg, .walker svg, .crew-pickup svg {
       display: block;
       width: 100%;
     }
@@ -409,6 +448,22 @@
 
     .walker svg {
       animation: face 3.6s ease-in-out infinite;
+    }
+
+    .crew-pickup {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 34px;
+      z-index: 7;
+      offset-rotate: 0deg;
+      offset-anchor: 50% 72%;
+      animation: haul 3.2s ease-in-out infinite;
+      filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.42));
+    }
+
+    .crew-pickup svg {
+      animation: face 3.2s ease-in-out infinite;
     }
 
     @keyframes haul {
@@ -763,6 +818,71 @@
             <circle cx="368" cy="120" r="18" fill="#3d5a38" />
             <circle cx="354" cy="128" r="11" fill="#4a6a40" />
           </g>
+          <g class="land-detail detail-pebble">
+            <path d="M104 159 L118 112 L164 112 L180 159 Z" fill="#493d32" stroke="#2a211a" stroke-width="3" />
+            <path d="M119 159 V128 Q141 105 163 128 V159 Z" fill="#171513" />
+            <path d="M112 120 H171 M108 137 H176" stroke="#765c3c" stroke-width="4" />
+            <path d="M119 111 V159 M164 111 V159" stroke="#8a6842" stroke-width="4" />
+            <g fill="#211d19" stroke="#0f0d0b" stroke-width="1">
+              <ellipse cx="92" cy="158" rx="15" ry="7" />
+              <ellipse cx="185" cy="164" rx="18" ry="8" />
+              <circle cx="80" cy="163" r="7" />
+            </g>
+          </g>
+          <g class="land-detail detail-granite">
+            <g stroke="#524e4a" stroke-width="2">
+              <path d="M52 164 L62 126 L91 108 L118 129 L126 164 Z" fill="#8f8780" />
+              <path d="M62 126 L90 137 L118 129 M90 137 L87 164" fill="none" />
+              <path d="M282 164 L290 132 L316 116 L343 135 L351 164 Z" fill="#756f6a" />
+              <path d="M290 132 L317 143 L343 135 M317 143 L315 164" fill="none" />
+            </g>
+            <g fill="#d9ccc2" opacity="0.55">
+              <circle cx="75" cy="130" r="2" /><circle cx="103" cy="134" r="1.7" />
+              <circle cx="307" cy="131" r="2" /><circle cx="334" cy="140" r="1.7" />
+            </g>
+          </g>
+          <g class="land-detail detail-quartz">
+            <g class="crystal-glow" stroke="#dffbff" stroke-width="1.4">
+              <polygon points="58,166 69,121 80,166" fill="#bdeff4" />
+              <polygon points="75,166 91,137 101,166" fill="#e5ffff" />
+              <polygon points="298,166 311,126 322,166" fill="#c8f4f4" />
+              <polygon points="315,166 333,143 341,166" fill="#f0ffff" />
+            </g>
+            <path d="M52 167 H105 M292 167 H346" stroke="#7ac9ce" stroke-width="4" opacity="0.7" />
+          </g>
+          <g class="land-detail detail-gold">
+            <g stroke="#4b351c" stroke-width="4" fill="none">
+              <path d="M55 164 L76 103 L99 164 M64 138 H91 M70 120 H85" />
+              <path d="M47 164 H108 M76 103 L114 132 V164" />
+            </g>
+            <circle cx="76" cy="101" r="5" fill="#f4e08a" />
+            <g class="diamond-glow">
+              <path d="M302 143 L312 130 L322 143 L312 157 Z" fill="#eafaff" stroke="#93dfff" stroke-width="1.5" />
+              <path d="M337 155 L344 146 L351 155 L344 165 Z" fill="#ffffff" stroke="#bcecff" />
+            </g>
+          </g>
+          <g class="land-detail detail-obsidian">
+            <path d="M42 164 L105 76 L170 164 Z" fill="#2a2630" />
+            <path d="M86 103 L105 76 L124 102 L113 99 L104 108 L96 99 Z" fill="#d85832" opacity="0.9" />
+            <path d="M102 106 L96 137 L112 164 M111 103 L121 132" stroke="#ef6a38" stroke-width="3" fill="none" opacity="0.75" />
+            <g class="volcano-smoke" fill="#b7a9bc">
+              <circle cx="100" cy="71" r="9" /><circle cx="111" cy="65" r="12" /><circle cx="93" cy="60" r="8" />
+            </g>
+            <path d="M306 164 L317 125 L327 151 L338 112 L349 164 Z" fill="#17131c" stroke="#55445f" stroke-width="2" />
+          </g>
+          <g class="land-detail detail-meteor">
+            <ellipse cx="83" cy="158" rx="38" ry="11" fill="#111925" opacity="0.7" />
+            <ellipse cx="83" cy="156" rx="27" ry="7" fill="#34404d" />
+            <ellipse cx="83" cy="154" rx="17" ry="4" fill="#171f2a" />
+            <circle cx="348" cy="62" r="24" fill="#6f8092" opacity="0.45" />
+            <circle cx="340" cy="56" r="5" fill="#3f5061" opacity="0.7" />
+            <circle cx="356" cy="69" r="7" fill="#435568" opacity="0.65" />
+            <g class="meteor-streak">
+              <path d="M298 28 L348 2" stroke="#dcecff" stroke-width="3" opacity="0.75" />
+              <path d="M298 28 L335 10" stroke="#8ec9ff" stroke-width="7" opacity="0.22" />
+              <circle cx="298" cy="28" r="5" fill="#f4e8c4" />
+            </g>
+          </g>
           <ellipse cx="200" cy="176" rx="78" ry="14" fill="#000" opacity="0.18" />
           <g stroke="#6a4a28" stroke-width="2" fill="none" opacity="0.55">
             <path d="M12 186 L48 168 L84 186" />
@@ -856,11 +976,11 @@
 
     const UPGRADES = [
       { id: "pick", name: "Stone pick", desc: "+0.4 per click", base: 12, pow: 1.38, click: 0.4, auto: 0 },
-      { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Places a crew mill and walking miners.", base: 53, pow: 1.36, click: 0, auto: 0.2 },
+      { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Places a crew mill and walking miners; level 7 upgrades them to pickup trucks.", base: 53, pow: 1.36, click: 0, auto: 0.2 },
       { id: "hammer", name: "Sledge line", desc: "+1.5 per click", base: 150, pow: 1.4, click: 1.5, auto: 0 },
       { id: "cart", name: "Mine carts", desc: "+1.2 / sec", base: 1350, pow: 1.35, click: 0, auto: 1.2 },
       { id: "drill", name: "Bore drill", desc: "One drill. First buy is placeable; drag near the rock to set its spot. Later buys upgrade it.", base: 6750, pow: 1.38, click: 0, auto: 0 },
-      { id: "blast", name: "Excavator", desc: "One excavator. First buy is placeable; drag near the rock to set its spot. Later buys upgrade it.", base: 27000, pow: 1.37, click: 0, auto: 0 },
+      { id: "blast", name: "Excavator", desc: "One excavator. First buy is placeable; drag near the rock to set its spot. At level 7 it becomes a reinforced heavy excavator.", base: 27000, pow: 1.37, click: 0, auto: 0 },
       { id: "laser", name: "Beam cutter", desc: "+35 per click", base: 140000, pow: 1.45, click: 35, auto: 0 },
       { id: "orbit", name: "Orbital quarry", desc: "+50 / sec", base: 930000, pow: 1.42, click: 0, auto: 50 }
     ];
@@ -1134,8 +1254,15 @@
 
     function excavatorMarkup(n) {
       const c = HAUL_COLORS[visualTier(n)];
+      const heavy = n >= 7;
       return `
-        <svg viewBox="-10 -20 180 150" aria-hidden="true">
+        <svg class="${heavy ? "excavator-heavy" : ""}" viewBox="-10 -20 180 150" aria-hidden="true">
+          ${heavy ? `
+            <rect x="38" y="92" width="82" height="23" rx="8" fill="${c.dark}" stroke="#f4e08a" stroke-width="2.2" />
+            <path d="M47 96 H112 M45 111 H114" stroke="#7d8792" stroke-width="2" />
+            <circle cx="49" cy="103.5" r="7" fill="#252a31" stroke="#aab3bc" stroke-width="1.2" />
+            <circle cx="109" cy="103.5" r="7" fill="#252a31" stroke="#aab3bc" stroke-width="1.2" />
+          ` : ""}
           <rect x="48" y="96" width="64" height="16" rx="4" fill="${c.dark}" />
           <rect x="52" y="100" width="12" height="8" fill="#5a626c" />
           <rect x="68" y="100" width="12" height="8" fill="#4a525c" />
@@ -1151,6 +1278,12 @@
             <rect x="46" y="30" width="34" height="8" rx="2" fill="${c.cab}" stroke="${c.dark}" stroke-width="1.2" />
             <rect x="52" y="42" width="20" height="18" rx="1.5" fill="${c.window}" opacity="0.88" />
             <rect x="58" y="20" width="5" height="12" rx="1" fill="${c.dark}" />
+            ${heavy ? `
+              <path d="M45 78 V31 Q45 25 51 25 H79 V79" fill="none" stroke="#f4e08a" stroke-width="2.4" />
+              <path d="M52 63 H72 M52 68 H72" stroke="#d5d0c6" stroke-width="1.5" opacity="0.9" />
+              <path d="M70 76 H106 V93 H70 Z" fill="${c.cab}" stroke="#f4e08a" stroke-width="2" />
+              <circle class="heavy-beacon" cx="73" cy="24" r="4.2" fill="#ffe66d" stroke="#6a4a18" stroke-width="1" />
+            ` : ""}
             <circle cx="80" cy="96" r="4" fill="${c.dark}" />
             <g>
               <animateTransform attributeName="transform" type="rotate" dur="9s" repeatCount="indefinite"
@@ -1159,6 +1292,12 @@
               <path d="M100 72 L148 46 L154 56 L106 84 Z" fill="${c.body}" stroke="${c.dark}" stroke-width="1.3" />
               <path d="M144 50 L168 86 L158 92 L136 58 Z" fill="${c.cab}" stroke="${c.dark}" stroke-width="1.2" />
               <path d="M156 84 L176 90 L172 102 L150 94 Z" fill="${c.dark}" />
+              ${heavy ? `
+                <path d="M105 72 L145 51" stroke="#f4e08a" stroke-width="4.5" stroke-linecap="round" />
+                <path d="M108 78 L149 55" stroke="#9aa3ae" stroke-width="2.2" stroke-linecap="round" />
+                <path d="M150 57 L163 88" stroke="#f4e08a" stroke-width="3.5" stroke-linecap="round" />
+                <path d="M158 98 L162 106 M164 99 L168 107 M170 99 L174 105" stroke="#f4e08a" stroke-width="2.2" stroke-linecap="round" />
+              ` : ""}
               <g>
                 <animate attributeName="opacity" dur="9s" repeatCount="indefinite"
                   values="0;0;1;1;0;0;0" keyTimes="0;0.12;0.22;0.4;0.5;0.66;1" />
@@ -1197,6 +1336,28 @@
           <rect x="8.4" y="12.6" width="2" height="5.2" fill="#3a3330" />
           <path d="M11 8.2 L15 5.2" stroke="#8b949e" stroke-width="1.4" />
           <path d="M13.4 4.4 L16 6.4 L13.8 7.2" fill="#c9a24a" />
+        </svg>`;
+    }
+
+    function crewPickupMarkup(n) {
+      const tier = visualTier(n);
+      const body = WALKER_COLORS[tier];
+      const trim = tier >= 3 ? "#f4e08a" : "#c9a24a";
+      return `
+        <svg viewBox="0 0 38 23" aria-hidden="true">
+          <path d="M2 11 H20 L25 6 H32 L36 11 V18 H2 Z" fill="${body}" stroke="#1a1d22" stroke-width="1.2" />
+          <path d="M24 7 H31 L34 11 H22 Z" fill="#9fd5e5" stroke="#1a1d22" stroke-width="0.9" />
+          <rect x="3.5" y="9" width="15" height="7" rx="1" fill="${body}" stroke="#1a1d22" stroke-width="0.9" />
+          <path d="M4 10 H18" stroke="${trim}" stroke-width="1.2" />
+          <circle cx="8" cy="8" r="2.1" fill="#e8c39a" />
+          <path d="M5.7 7.2 Q8 4.8 10.3 7.2" fill="${trim}" />
+          <circle cx="15" cy="8.2" r="2" fill="#e8c39a" />
+          <path d="M12.8 7.4 Q15 5.1 17.2 7.4" fill="${trim}" />
+          <rect x="1" y="16" width="36" height="2" rx="1" fill="${trim}" opacity="0.8" />
+          <circle cx="9" cy="18.5" r="3.1" fill="#171a20" />
+          <circle cx="9" cy="18.5" r="1.35" fill="#7d8792" />
+          <circle cx="29" cy="18.5" r="3.1" fill="#171a20" />
+          <circle cx="29" cy="18.5" r="1.35" fill="#7d8792" />
         </svg>`;
     }
 
@@ -1308,7 +1469,7 @@
       const w = el.arena.clientWidth;
       const h = el.arena.clientHeight;
       if (!w || !h) return;
-      setOffsetPath(el.walkers, ".walker", crewPath(w, h));
+      setOffsetPath(el.walkers, ".walker, .crew-pickup", crewPath(w, h));
     }
 
     function layoutHaul() {
@@ -1326,15 +1487,16 @@
       const showHaul = !!haulSpot;
       const tier = cartTier();
       const haulTier = visualTier(blast);
-      const walkers = showCrewMill ? Math.min(5, Math.max(1, Math.ceil(crew / 2))) : 0;
-      const key = [landId(), crew, carts, blast, showHaul, haulSpot?.x, haulSpot?.y, tier, haulTier, walkers].join("-");
+      const crewUnits = showCrewMill ? Math.min(5, Math.max(1, Math.ceil(crew / 2))) : 0;
+      const crewHasPickups = crew >= 7;
+      const key = [landId(), crew, carts, blast, showHaul, haulSpot?.x, haulSpot?.y, tier, haulTier, crewUnits, crewHasPickups].join("-");
       el.factory.setAttribute("class", showCartFactory ? "factory visible" : "factory");
       el.crewMill.setAttribute("class", showCrewMill ? "crew-mill visible" : "crew-mill");
       el.rail.setAttribute("class", showRail ? "rail visible" : "rail");
       el.road.setAttribute("class", showHaul ? "road visible" : "road");
       if (el.miners.dataset.key === key) {
         if (showRail) layoutMiners();
-        if (walkers) layoutWalkers();
+        if (crewUnits) layoutWalkers();
         if (showHaul) layoutHaul();
         return;
       }
@@ -1356,12 +1518,12 @@
         el.trucks.appendChild(truck);
         layoutHaul();
       }
-      for (let i = 0; i < walkers; i++) {
+      for (let i = 0; i < crewUnits; i++) {
         const node = document.createElement("div");
-        node.className = "walker";
+        node.className = crewHasPickups ? "crew-pickup" : "walker";
         node.style.animationDelay = (i * 0.55) + "s";
-        node.style.animationDuration = (3.2 + (i % 3) * 0.35) + "s";
-        node.innerHTML = walkerMarkup(crew);
+        node.style.animationDuration = ((crewHasPickups ? 2.8 : 3.2) + (i % 3) * 0.35) + "s";
+        node.innerHTML = crewHasPickups ? crewPickupMarkup(crew) : walkerMarkup(crew);
         const svg = node.querySelector("svg");
         if (svg) {
           svg.style.animationDuration = node.style.animationDuration;
@@ -1369,7 +1531,7 @@
         }
         el.walkers.appendChild(node);
       }
-      if (walkers) layoutWalkers();
+      if (crewUnits) layoutWalkers();
     }
 
     function syncPlaceables() {
