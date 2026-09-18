@@ -187,21 +187,33 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      z-index: 4;
+      z-index: 6;
     }
 
-    .mounted-drill {
+    .mounted-tool {
       position: absolute;
-      left: 68%;
-      top: 40%;
-      width: 126px;
-      transform: translate(-50%, -50%) rotate(62deg);
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      cursor: grab;
+      touch-action: none;
       filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5));
     }
 
-    .mounted-drill svg { display: block; width: 100%; }
+    .mounted-tool:active { cursor: grabbing; }
+    .mounted-tool.moving { opacity: 0.35; }
+    .mounted-tool svg { display: block; width: 100%; overflow: visible; pointer-events: none; }
 
-    .mounted-drill .bit {
+    .mounted-tool[data-placed="drill"] {
+      width: 126px;
+      transform: translate(-50%, -50%) rotate(62deg);
+    }
+
+    .mounted-tool[data-placed="blast"] {
+      width: 168px;
+      overflow: visible;
+    }
+
+    .mounted-drill .bit, .mounted-tool .bit {
       transform-origin: 24px 12px;
       animation: bore 0.18s linear infinite;
     }
@@ -211,7 +223,7 @@
       to { transform: rotate(360deg); }
     }
 
-    .particles, .floats, .miners, .walkers, .rail {
+    .particles, .floats, .miners, .walkers, .rail, .road, .trucks {
       position: absolute;
       inset: 0;
       pointer-events: none;
@@ -226,6 +238,43 @@
     }
 
     .rail.visible { opacity: 1; }
+
+    .road {
+      width: 100%;
+      height: 100%;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 280ms ease;
+    }
+
+    .road.visible { opacity: 1; }
+
+    .haul-truck {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 44px;
+      z-index: 7;
+      offset-rotate: auto;
+      offset-anchor: 50% 70%;
+      animation: haulTruck 9s ease-in-out infinite;
+      filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
+    }
+
+    .haul-truck svg { display: block; width: 100%; }
+    .haul-truck .cargo { animation: truckCargo 9s ease-in-out infinite; }
+
+    @keyframes haulTruck {
+      0%, 48% { offset-distance: 0%; }
+      72%, 80% { offset-distance: 100%; }
+      100% { offset-distance: 0%; }
+    }
+
+    @keyframes truckCargo {
+      0%, 40% { opacity: 0; }
+      46%, 78% { opacity: 1; }
+      84%, 100% { opacity: 0; }
+    }
 
     .factory, .crew-mill {
       position: absolute;
@@ -616,7 +665,9 @@
         <div class="particles" id="particles"></div>
         <div class="floats" id="floats"></div>
         <svg class="rail" id="rail" aria-hidden="true"></svg>
+        <svg class="road" id="road" aria-hidden="true"></svg>
         <div class="miners" id="miners"></div>
+        <div class="trucks" id="trucks"></div>
         <div class="walkers" id="walkers"></div>
         <svg id="rock" class="rock" viewBox="0 0 200 180" role="button" aria-label="Click the rock" tabindex="0">
           <defs>
@@ -654,7 +705,7 @@
         </svg>
         <div class="mounted-drills" id="mountedDrills"></div>
       </div>
-      <p class="hint">New lands start without crew, carts, or drills. Stone pick, sledge, and beam cutter stay with you.</p>
+      <p class="hint">New lands start without crew, carts, drills, or excavators. Drag placeable tools near the rock to set their spot. Stone pick, sledge, and beam cutter stay with you.</p>
       <div class="lands" id="lands"></div>
     </section>
 
@@ -689,8 +740,8 @@
       { id: "crew", name: "Chip crew", desc: "+0.2 / sec. Places a crew mill and walking miners.", base: 53, pow: 1.36, click: 0, auto: 0.2 },
       { id: "hammer", name: "Sledge line", desc: "+1.5 per click", base: 150, pow: 1.4, click: 1.5, auto: 0 },
       { id: "cart", name: "Mine carts", desc: "+1.2 / sec", base: 1350, pow: 1.35, click: 0, auto: 1.2 },
-      { id: "drill", name: "Bore drill", desc: "One drill. First buy is placeable; later buys upgrade it.", base: 6750, pow: 1.38, click: 0, auto: 0 },
-      { id: "blast", name: "Powder charges", desc: "+8 / sec", base: 27000, pow: 1.37, click: 0, auto: 8 },
+      { id: "drill", name: "Bore drill", desc: "One drill. First buy is placeable; drag near the rock to set its spot. Later buys upgrade it.", base: 6750, pow: 1.38, click: 0, auto: 0 },
+      { id: "blast", name: "Excavator", desc: "One excavator. First buy is placeable; drag near the rock to set its spot. Later buys upgrade it.", base: 27000, pow: 1.37, click: 0, auto: 0 },
       { id: "laser", name: "Beam cutter", desc: "+35 per click", base: 140000, pow: 1.45, click: 35, auto: 0 },
       { id: "orbit", name: "Orbital quarry", desc: "+50 / sec", base: 930000, pow: 1.42, click: 0, auto: 50 }
     ];
@@ -775,7 +826,8 @@
     }
 
     const PLACEABLES = [
-      { id: "drill", upgradeId: "drill", name: "Bore drill", auto: DRILL_AUTO, markup: drillMarkup }
+      { id: "drill", upgradeId: "drill", name: "Bore drill", auto: DRILL_AUTO, markup: drillMarkup },
+      { id: "blast", upgradeId: "blast", name: "Excavator", auto: 8, markup: excavatorMarkup }
     ];
 
     const CARTS = [
@@ -844,9 +896,11 @@
       floats: document.getElementById("floats"),
       miners: document.getElementById("miners"),
       walkers: document.getElementById("walkers"),
+      trucks: document.getElementById("trucks"),
       factory: document.getElementById("factory"),
       crewMill: document.getElementById("crewMill"),
       rail: document.getElementById("rail"),
+      road: document.getElementById("road"),
       arena: document.getElementById("arena"),
       traySlots: document.getElementById("traySlots"),
       mountedDrills: document.getElementById("mountedDrills"),
@@ -901,7 +955,33 @@
       return Math.max(1, Math.floor(raw));
     };
     const perClick = () => (1 + UPGRADES.reduce((s, u) => s + scaledStat(u.click, ownedOf(u.id), true), 0)) * landMult();
-    const unusedPlaceable = (id) => ownedOf(id) > 0 && !landBag().placed[id];
+    const unusedPlaceable = (id) => ownedOf(id) > 0 && !placedSpot(id);
+    function defaultSpot(id) {
+      return id === "blast" ? { x: 0.58, y: 0.68 } : { x: 0.68, y: 0.40 };
+    }
+    function placedSpot(id, land) {
+      const v = landBag(land).placed[id];
+      if (!v) return null;
+      if (v === true) return defaultSpot(id);
+      if (typeof v.x === "number" && typeof v.y === "number") {
+        return { x: Math.min(0.92, Math.max(0.08, v.x)), y: Math.min(0.88, Math.max(0.12, v.y)) };
+      }
+      return defaultSpot(id);
+    }
+    function arenaSpot(clientX, clientY) {
+      const rect = el.arena.getBoundingClientRect();
+      if (!rect.width || !rect.height) return null;
+      return {
+        x: (clientX - rect.left) / rect.width,
+        y: (clientY - rect.top) / rect.height
+      };
+    }
+    function nearRock(clientX, clientY) {
+      const rock = el.rock.getBoundingClientRect();
+      const pad = Math.max(88, rock.width * 0.42);
+      return clientX >= rock.left - pad && clientX <= rock.right + pad
+        && clientY >= rock.top - pad && clientY <= rock.bottom + pad;
+    }
     function placeableAuto(landId) {
       const bag = landBag(landId);
       return PLACEABLES.reduce((s, p) => (
@@ -925,6 +1005,66 @@
       return Math.pow(AUTO_COST_STEP, idx);
     }
     const cartTier = () => visualTier(ownedOf("cart"));
+    const HAUL_COLORS = [
+      { body: "#d4a017", dark: "#3a3330", cab: "#c9a24a", window: "#7eb8c9", cargo: "#cfc6b8" },
+      { body: "#e6b84d", dark: "#2a2418", cab: "#d4a84a", window: "#8bb8c9", cargo: "#d5d0c6" },
+      { body: "#f0c85c", dark: "#1c1810", cab: "#e6b84d", window: "#a8d4e0", cargo: "#e6b84d" },
+      { body: "#e8a020", dark: "#171c24", cab: "#c9a24a", window: "#f4e08a", cargo: "#f3d27a" },
+      { body: "#7eb8c9", dark: "#11141a", cab: "#5a6a78", window: "#c9d4e8", cargo: "#c9d4e8" }
+    ];
+
+    function excavatorMarkup(n) {
+      const c = HAUL_COLORS[visualTier(n)];
+      return `
+        <svg viewBox="-10 -20 180 150" aria-hidden="true">
+          <rect x="48" y="96" width="64" height="16" rx="4" fill="${c.dark}" />
+          <rect x="52" y="100" width="12" height="8" fill="#5a626c" />
+          <rect x="68" y="100" width="12" height="8" fill="#4a525c" />
+          <rect x="84" y="100" width="12" height="8" fill="#5a626c" />
+          <circle cx="80" cy="96" r="8" fill="#2a2e34" stroke="${c.dark}" stroke-width="1.5" />
+          <g>
+            <animateTransform attributeName="transform" type="rotate" dur="9s" repeatCount="indefinite"
+              values="-118 80 96;-118 80 96;-118 80 96;-215 80 96;-215 80 96;-118 80 96;-118 80 96"
+              keyTimes="0;0.14;0.26;0.38;0.54;0.68;1" />
+            <rect x="46" y="70" width="28" height="26" rx="3" fill="${c.cab}" stroke="${c.dark}" stroke-width="1.3" />
+            <rect x="68" y="74" width="40" height="22" rx="3" fill="${c.body}" stroke="${c.dark}" stroke-width="1.4" />
+            <rect x="48" y="36" width="30" height="40" rx="3" fill="${c.body}" stroke="${c.dark}" stroke-width="1.5" />
+            <rect x="46" y="30" width="34" height="8" rx="2" fill="${c.cab}" stroke="${c.dark}" stroke-width="1.2" />
+            <rect x="52" y="42" width="20" height="18" rx="1.5" fill="${c.window}" opacity="0.88" />
+            <rect x="58" y="20" width="5" height="12" rx="1" fill="${c.dark}" />
+            <circle cx="80" cy="96" r="4" fill="${c.dark}" />
+            <g>
+              <animateTransform attributeName="transform" type="rotate" dur="9s" repeatCount="indefinite"
+                values="28 104 76;28 104 76;-26 104 76;-18 104 76;10 104 76;28 104 76;28 104 76"
+                keyTimes="0;0.14;0.28;0.46;0.58;0.70;1" />
+              <path d="M100 72 L148 46 L154 56 L106 84 Z" fill="${c.body}" stroke="${c.dark}" stroke-width="1.3" />
+              <path d="M144 50 L168 86 L158 92 L136 58 Z" fill="${c.cab}" stroke="${c.dark}" stroke-width="1.2" />
+              <path d="M156 84 L176 90 L172 102 L150 94 Z" fill="${c.dark}" />
+              <g>
+                <animate attributeName="opacity" dur="9s" repeatCount="indefinite"
+                  values="0;0;1;1;0;0;0" keyTimes="0;0.12;0.22;0.4;0.5;0.66;1" />
+                <circle cx="166" cy="88" r="4.4" fill="${c.cargo}" />
+                <circle cx="171" cy="91" r="3.2" fill="${c.cargo}" opacity="0.85" />
+              </g>
+            </g>
+          </g>
+        </svg>`;
+    }
+
+    function truckMarkup(n) {
+      const c = HAUL_COLORS[visualTier(n)];
+      return `
+        <svg viewBox="0 0 40 22" aria-hidden="true">
+          <rect x="2" y="8" width="20" height="9" rx="1.2" fill="${c.body}" stroke="${c.dark}" stroke-width="1.1" />
+          <path class="cargo" d="M5 8 L12 3 L20 8 Z" fill="${c.cargo}" />
+          <rect x="22" y="7" width="14" height="10" rx="1.4" fill="${c.cab}" stroke="${c.dark}" stroke-width="1.1" />
+          <rect x="26" y="9" width="7" height="5" fill="${c.window}" opacity="0.8" />
+          <circle cx="10" cy="18.2" r="2.4" fill="#1a1d22" />
+          <circle cx="10" cy="18.2" r="1.1" fill="${c.body}" />
+          <circle cx="28" cy="18.2" r="2.4" fill="#1a1d22" />
+          <circle cx="28" cy="18.2" r="1.1" fill="${c.body}" />
+        </svg>`;
+    }
     const WALKER_COLORS = ["#4a6d8c", "#5c6570", "#c9a24a", "#e6b84d", "#7eb8c9"];
 
     function walkerMarkup(n) {
@@ -977,6 +1117,40 @@
       return `M ${p0.x} ${p0.y} Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`;
     }
 
+    function roadPoints(w, h) {
+      const spot = placedSpot("blast");
+      const p0 = spot
+        ? { x: spot.x * w - 26, y: spot.y * h + 10 }
+        : { x: w * 0.54, y: h * 0.70 };
+      return {
+        p0,
+        p1: { x: w * 0.30, y: h - 14 },
+        p2: { x: 44, y: h - 16 }
+      };
+    }
+
+    function roadPath(w, h) {
+      const { p0, p1, p2 } = roadPoints(w, h);
+      return `M ${p0.x} ${p0.y} Q ${p1.x} ${p1.y} ${p2.x} ${p2.y}`;
+    }
+
+    function drawRoad() {
+      const w = el.arena.clientWidth;
+      const h = el.arena.clientHeight;
+      if (!w || !h || !el.road) return "";
+      const { p0, p1, p2 } = roadPoints(w, h);
+      const d = roadPath(w, h);
+      const dust = HAUL_COLORS[visualTier(ownedOf("blast"))].body;
+      el.road.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      el.road.innerHTML = `
+        <path d="${d}" fill="none" stroke="#3a2e22" stroke-width="18" stroke-linecap="round" />
+        <path d="${d}" fill="none" stroke="#6a5640" stroke-width="12" stroke-linecap="round" />
+        <path d="${d}" fill="none" stroke="#4a3a2a" stroke-width="2.2" stroke-dasharray="7 9" stroke-linecap="round" opacity="0.7" />
+        <circle cx="${p2.x}" cy="${p2.y}" r="5" fill="#2a2418" stroke="${dust}" stroke-width="1.4" />
+      `;
+      return d;
+    }
+
     function drawRail() {
       const w = el.arena.clientWidth;
       const h = el.arena.clientHeight;
@@ -1023,15 +1197,29 @@
       });
     }
 
+    function layoutHaul() {
+      const w = el.arena.clientWidth;
+      const h = el.arena.clientHeight;
+      const d = drawRoad();
+      if (!d || !w || !h) return;
+      el.trucks?.querySelectorAll(".haul-truck").forEach((node) => {
+        node.style.offsetPath = `path("${d}")`;
+      });
+    }
+
     function syncMiners() {
       const crew = ownedOf("crew");
       const carts = ownedOf("cart");
-      const showCartFactory = carts > 0;
+      const blast = ownedOf("blast");
+      const haulSpot = placedSpot("blast");
+      const showCartFactory = carts > 0 || !!haulSpot;
       const showCrewMill = crew > 0;
       const showRail = carts > 0;
+      const showHaul = !!haulSpot;
       const tier = cartTier();
+      const haulTier = visualTier(blast);
       const walkers = showCrewMill ? Math.min(5, Math.max(1, Math.ceil(crew / 2))) : 0;
-      const key = [landId(state.activeLand), crew, carts, tier, walkers].join("-");
+      const key = [landId(state.activeLand), crew, carts, blast, showHaul, haulSpot?.x, haulSpot?.y, tier, haulTier, walkers].join("-");
       if (el.factory) {
         el.factory.setAttribute("class", showCartFactory ? "factory visible" : "factory");
         el.factory.style.opacity = showCartFactory ? "1" : "0";
@@ -1044,21 +1232,34 @@
         el.rail.setAttribute("class", showRail ? "rail visible" : "rail");
         el.rail.style.opacity = showRail ? "1" : "0";
       }
+      if (el.road) {
+        el.road.setAttribute("class", showHaul ? "road visible" : "road");
+        el.road.style.opacity = showHaul ? "1" : "0";
+      }
       if (!el.miners || !el.walkers) return;
       if (el.miners.dataset.key === key) {
         if (showRail) layoutMiners();
         if (walkers) layoutWalkers();
+        if (showHaul) layoutHaul();
         return;
       }
       el.miners.dataset.key = key;
       el.miners.innerHTML = "";
       el.walkers.innerHTML = "";
+      if (el.trucks) el.trucks.innerHTML = "";
       if (showRail) {
         const node = document.createElement("div");
         node.className = "miner";
         node.innerHTML = CARTS[tier] || CARTS[0];
         el.miners.appendChild(node);
         layoutMiners();
+      }
+      if (showHaul) {
+        const truck = document.createElement("div");
+        truck.className = "haul-truck";
+        truck.innerHTML = truckMarkup(blast);
+        el.trucks.appendChild(truck);
+        layoutHaul();
       }
       for (let i = 0; i < walkers; i++) {
         const node = document.createElement("div");
@@ -1079,25 +1280,35 @@
     function syncPlaceables() {
       const waiting = PLACEABLES.filter((p) => unusedPlaceable(p.id));
       if (!waiting.length) {
-        el.traySlots.innerHTML = `<div class="tray-empty">Buy a tool, then drag it onto the rock. Extra buys upgrade the same tool.</div>`;
+        el.traySlots.innerHTML = `<div class="tray-empty">Buy a tool, then drag it near the rock. Drag a placed tool to move it.</div>`;
       } else {
         el.traySlots.innerHTML = waiting.map((p) => `
-          <button type="button" class="gear-icon" data-gear="${p.id}" aria-label="Drag ${p.name} onto the rock">
+          <button type="button" class="gear-icon" data-gear="${p.id}" aria-label="Drag ${p.name} near the rock">
             ${p.markup(ownedOf(p.upgradeId))}
           </button>`).join("");
       }
-      el.mountedDrills.innerHTML = PLACEABLES.filter((p) => landBag().placed[p.id]).map((p) =>
-        `<div class="mounted-drill" data-placed="${p.id}">${p.markup(ownedOf(p.upgradeId))}</div>`
-      ).join("");
+      el.mountedDrills.innerHTML = PLACEABLES.filter((p) => placedSpot(p.id)).map((p) => {
+        const spot = placedSpot(p.id);
+        return `<div class="mounted-tool" data-placed="${p.id}" style="left:${(spot.x * 100).toFixed(2)}%;top:${(spot.y * 100).toFixed(2)}%">${p.markup(ownedOf(p.upgradeId))}</div>`;
+      }).join("");
     }
 
-    function placeGear(id) {
+    function setPlaceablePos(id, spot) {
       const p = PLACEABLES.find((item) => item.id === id);
-      if (!p || unusedPlaceable(id) === false) return false;
-      landBag().placed[id] = true;
+      if (!p || ownedOf(p.upgradeId) <= 0 || !spot) return false;
+      landBag().placed[id] = {
+        x: Math.min(0.92, Math.max(0.08, spot.x)),
+        y: Math.min(0.88, Math.max(0.12, spot.y))
+      };
       render();
       save();
       return true;
+    }
+
+    function placeGear(id, spot) {
+      if (!PLACEABLES.find((item) => item.id === id)) return false;
+      if (ownedOf(id) <= 0) return false;
+      return setPlaceablePos(id, spot || defaultSpot(id));
     }
 
     function addRocks(amount) {
@@ -1370,6 +1581,12 @@
           bag.placed = { ...(data.placed || {}) };
           if (data.placedDrills > 0) bag.placed.drill = true;
         }
+        Object.values(state.landStats).forEach((bag) => {
+          bag.placed = bag.placed || {};
+          Object.keys(bag.placed).forEach((id) => {
+            if (bag.placed[id] === true) bag.placed[id] = defaultSpot(id);
+          });
+        });
         if (data.savedAt) {
           const elapsed = Math.min(60 * 60 * 8, (Date.now() - data.savedAt) / 1000);
           addRocks(perSec() * elapsed);
@@ -1422,41 +1639,7 @@
     let suppressClick = false;
     let dragging = null;
 
-    function endDrag(clientX, clientY) {
-      if (!dragging) return;
-      const id = dragging.id;
-      const rect = el.arena.getBoundingClientRect();
-      const over = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
-      dragging.ghost.remove();
-      dragging = null;
-      el.arena.classList.remove("drop-ready");
-      window.removeEventListener("pointermove", onDragMove);
-      window.removeEventListener("pointerup", onDragUp);
-      window.removeEventListener("pointercancel", onDragUp);
-      if (over && id) {
-        suppressClick = true;
-        placeGear(id);
-        setTimeout(() => { suppressClick = false; }, 200);
-      }
-    }
-
-    function onDragMove(e) {
-      if (!dragging) return;
-      dragging.ghost.style.left = e.clientX + "px";
-      dragging.ghost.style.top = e.clientY + "px";
-      const rect = el.arena.getBoundingClientRect();
-      const over = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
-      el.arena.classList.toggle("drop-ready", over);
-    }
-
-    function onDragUp(e) {
-      endDrag(e.clientX, e.clientY);
-    }
-
-    el.traySlots.addEventListener("pointerdown", (e) => {
-      const icon = e.target.closest("[data-gear]");
-      if (!icon) return;
-      const id = icon.dataset.gear;
+    function startDrag(id, e, fromEl) {
       const item = PLACEABLES.find((p) => p.id === id);
       if (!item) return;
       e.preventDefault();
@@ -1466,13 +1649,56 @@
       ghost.style.left = e.clientX + "px";
       ghost.style.top = e.clientY + "px";
       document.body.appendChild(ghost);
-      dragging = { ghost, id };
+      if (fromEl) fromEl.classList.add("moving");
+      dragging = { ghost, id, fromEl };
       window.addEventListener("pointermove", onDragMove);
       window.addEventListener("pointerup", onDragUp);
       window.addEventListener("pointercancel", onDragUp);
+    }
+
+    function endDrag(clientX, clientY) {
+      if (!dragging) return;
+      const { id, ghost, fromEl } = dragging;
+      const close = nearRock(clientX, clientY);
+      const spot = arenaSpot(clientX, clientY);
+      ghost.remove();
+      if (fromEl) fromEl.classList.remove("moving");
+      dragging = null;
+      el.arena.classList.remove("drop-ready");
+      window.removeEventListener("pointermove", onDragMove);
+      window.removeEventListener("pointerup", onDragUp);
+      window.removeEventListener("pointercancel", onDragUp);
+      if (close && id && spot) {
+        suppressClick = true;
+        placeGear(id, spot);
+        setTimeout(() => { suppressClick = false; }, 200);
+      }
+    }
+
+    function onDragMove(e) {
+      if (!dragging) return;
+      dragging.ghost.style.left = e.clientX + "px";
+      dragging.ghost.style.top = e.clientY + "px";
+      el.arena.classList.toggle("drop-ready", nearRock(e.clientX, e.clientY));
+    }
+
+    function onDragUp(e) {
+      endDrag(e.clientX, e.clientY);
+    }
+
+    el.traySlots.addEventListener("pointerdown", (e) => {
+      const icon = e.target.closest("[data-gear]");
+      if (!icon) return;
+      startDrag(icon.dataset.gear, e);
     });
 
-    window.addEventListener("resize", () => { layoutMiners(); layoutWalkers(); });
+    el.mountedDrills.addEventListener("pointerdown", (e) => {
+      const tool = e.target.closest("[data-placed]");
+      if (!tool) return;
+      startDrag(tool.dataset.placed, e, tool);
+    });
+
+    window.addEventListener("resize", () => { layoutMiners(); layoutWalkers(); layoutHaul(); });
 
     load();
     render();
