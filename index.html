@@ -145,13 +145,42 @@
         radial-gradient(circle at 50% 70%, #2a2418 0%, transparent 55%),
         linear-gradient(#10141c, #0c1016);
       user-select: none;
+      transition: background 280ms ease;
+    }
+
+    .rock-wrap[data-land="pebble"] {
+      background:
+        radial-gradient(circle at 50% 72%, #4a3a28 0%, transparent 52%),
+        linear-gradient(#1c1814, #100e0c);
+    }
+    .rock-wrap[data-land="granite"] {
+      background:
+        radial-gradient(circle at 50% 72%, #3a3532 0%, transparent 52%),
+        linear-gradient(#1a1818, #0e0d0d);
+    }
+    .rock-wrap[data-land="quartz"] {
+      background:
+        radial-gradient(circle at 50% 70%, #2a3a3c 0%, transparent 55%),
+        linear-gradient(#12181c, #0a1014);
+    }
+    .rock-wrap[data-land="gold"] {
+      background:
+        radial-gradient(circle at 50% 68%, #1c3a4a 0%, transparent 55%),
+        linear-gradient(#0e1620, #070b12);
+    }
+    .rock-wrap[data-land="obsidian"] {
+      background:
+        radial-gradient(circle at 50% 70%, #2a1830 0%, transparent 55%),
+        linear-gradient(#100c14, #07050a);
+    }
+    .rock-wrap[data-land="meteor"] {
+      background:
+        radial-gradient(circle at 50% 70%, #2a3038 0%, transparent 55%),
+        linear-gradient(#14181e, #0a0c10);
     }
 
     .rock-wrap.drop-ready {
       box-shadow: inset 0 0 0 2px var(--gold);
-      background:
-        radial-gradient(circle at 50% 70%, #3a3018 0%, transparent 55%),
-        linear-gradient(#10141c, #0c1016);
     }
 
     .mounted-drills {
@@ -344,6 +373,56 @@
       border-radius: 8px;
       margin-bottom: 6px;
     }
+    .land-card .swatch.pebble {
+      background:
+        radial-gradient(circle at 22% 35%, #1a1614 2px, transparent 2.4px),
+        radial-gradient(circle at 68% 62%, #0c0b0a 2.5px, transparent 3px),
+        linear-gradient(135deg, #7a7268, #2a2622);
+    }
+    .land-card .swatch.granite {
+      background:
+        radial-gradient(circle at 18% 40%, #ead8d0 1.4px, transparent 1.8px),
+        radial-gradient(circle at 55% 30%, #1c1a18 1.2px, transparent 1.6px),
+        radial-gradient(circle at 78% 70%, #f2ece6 1.3px, transparent 1.7px),
+        linear-gradient(135deg, #d2c4b8, #5a5550);
+    }
+    .land-card .swatch.quartz {
+      background:
+        linear-gradient(118deg, transparent 42%, rgba(255,255,255,0.7) 46%, transparent 50%),
+        linear-gradient(135deg, #f3fafa, #5d7a7c);
+    }
+    .land-card .swatch.gold {
+      background:
+        radial-gradient(circle at 38% 40%, #eef9ff 2px, transparent 2.4px),
+        radial-gradient(circle at 72% 58%, #9fd8ff 1.4px, transparent 1.8px),
+        linear-gradient(135deg, #6b7c94, #10151c);
+    }
+    .land-card .swatch.obsidian {
+      background:
+        linear-gradient(125deg, transparent 40%, rgba(220,200,255,0.45) 48%, transparent 56%),
+        linear-gradient(135deg, #5a4a68, #07050a);
+    }
+    .land-card .swatch.meteor {
+      background:
+        repeating-linear-gradient(60deg, transparent, transparent 4px, rgba(210,200,170,0.25) 4px, rgba(210,200,170,0.25) 5px),
+        linear-gradient(135deg, #c5cdd8, #2a3038);
+    }
+
+    #rockOre { pointer-events: none; }
+    #rockOre .glint { animation: glint 2.2s ease-in-out infinite; }
+    #rockOre .spark {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: spark 1.15s ease-in-out infinite;
+    }
+    @keyframes glint {
+      0%, 100% { opacity: 0.28; }
+      50% { opacity: 0.9; }
+    }
+    @keyframes spark {
+      0%, 100% { opacity: 0.12; transform: scale(0.7); }
+      50% { opacity: 1; transform: scale(1); }
+    }
     .land-card .name {
       font-size: 0.72rem;
       line-height: 1.2;
@@ -509,7 +588,7 @@
   <header>
     <div>
       <h1>Rock Clicker</h1>
-      <div class="subtitle" id="tierName">Pebble pit</div>
+      <div class="subtitle" id="tierName">Coal cavern</div>
     </div>
     <div class="header-actions">
       <button type="button" id="saveBtn">Save</button>
@@ -542,17 +621,17 @@
         <svg id="rock" class="rock" viewBox="0 0 200 180" role="button" aria-label="Click the rock" tabindex="0">
           <defs>
             <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#9aa3b2" />
-              <stop offset="45%" stop-color="#6d737e" />
-              <stop offset="100%" stop-color="#3f444c" />
+              <stop offset="0%" stop-color="#7a7268" />
+              <stop offset="45%" stop-color="#4a443e" />
+              <stop offset="100%" stop-color="#2a2622" />
             </linearGradient>
+            <clipPath id="rockClip">
+              <path d="M38 118 L22 78 L48 42 L96 22 L148 36 L182 78 L168 124 L118 158 L62 152 Z" />
+            </clipPath>
           </defs>
-          <path id="rockBody" fill="url(#g)" stroke="#2b3038" stroke-width="3"
+          <path id="rockBody" fill="url(#g)" stroke="#1a1614" stroke-width="3"
             d="M38 118 L22 78 L48 42 L96 22 L148 36 L182 78 L168 124 L118 158 L62 152 Z" />
-          <path fill="none" stroke="#cfd5de" stroke-width="2" opacity="0.35"
-            d="M58 70 L92 48 L126 68" />
-          <path fill="none" stroke="#2a2e34" stroke-width="2" opacity="0.45"
-            d="M70 118 L110 96 L150 112" />
+          <g id="rockOre" clip-path="url(#rockClip)"></g>
         </svg>
         <svg class="factory" id="factory" viewBox="0 0 64 56" aria-hidden="true">
           <rect x="6" y="22" width="42" height="28" rx="2" fill="#3a4454" stroke="#1c222c" stroke-width="2" />
@@ -597,12 +676,12 @@
   <script>
     const SAVE_KEY = "rock-clicker-v1";
     const LANDS = [
-      { id: "pebble", name: "Pebble pit", cost: 0, mult: 1, colors: ["#9aa3b2", "#6d737e", "#3f444c"] },
-      { id: "granite", name: "Granite shelf", cost: 1400, mult: 1.75, colors: ["#b8c0c8", "#7a838c", "#4a5158"] },
-      { id: "quartz", name: "Quartz vein", cost: 15750, mult: 2.75, colors: ["#d7ecec", "#8bb8b8", "#4f6f70"] },
-      { id: "gold", name: "Gold seam", cost: 148750, mult: 4.25, colors: ["#f3d27a", "#c4922e", "#6e4b16"] },
-      { id: "obsidian", name: "Obsidian core", cost: 1312500, mult: 6.5, colors: ["#6a5a78", "#2d2438", "#120e18"] },
-      { id: "meteor", name: "Meteorite", cost: 11375000, mult: 10, colors: ["#c9d4e8", "#5b6d88", "#1c2430"] }
+      { id: "pebble", name: "Coal cavern", cost: 0, mult: 1, colors: ["#7a7268", "#4a443e", "#2a2622"], stroke: "#2a2420" },
+      { id: "granite", name: "Granite shelf", cost: 1400, mult: 1.75, colors: ["#d2c4b8", "#8f867e", "#5a5550"], stroke: "#3d3a38" },
+      { id: "quartz", name: "Quartz vein", cost: 15750, mult: 2.75, colors: ["#f3fafa", "#b7d4d4", "#5d7a7c"], stroke: "#6a8888" },
+      { id: "gold", name: "Diamond mine", cost: 148750, mult: 4.25, colors: ["#6b7c94", "#2a3648", "#10151c"], stroke: "#1a2430" },
+      { id: "obsidian", name: "Obsidian core", cost: 1312500, mult: 6.5, colors: ["#5a4a68", "#1a121f", "#07050a"], stroke: "#0a0810" },
+      { id: "meteor", name: "Meteorite", cost: 11375000, mult: 10, colors: ["#c5cdd8", "#6a7382", "#2a3038"], stroke: "#1c2228" }
     ];
 
     const UPGRADES = [
@@ -759,6 +838,8 @@
       landShop: document.getElementById("landShop"),
       lands: document.getElementById("lands"),
       rock: document.getElementById("rock"),
+      rockBody: document.getElementById("rockBody"),
+      rockOre: document.getElementById("rockOre"),
       particles: document.getElementById("particles"),
       floats: document.getElementById("floats"),
       miners: document.getElementById("miners"),
@@ -1029,10 +1110,94 @@
       el.tierName.textContent = land.name + " · x" + land.mult;
       const stops = document.querySelectorAll("#g stop");
       stops.forEach((stop, i) => stop.setAttribute("stop-color", land.colors[i]));
+      el.rockBody.setAttribute("stroke", land.stroke || "#2b3038");
+      el.arena.dataset.land = land.id;
+      el.rockOre.innerHTML = oreArt(land.id);
     }
 
-    function swatch(land) {
-      return `linear-gradient(135deg, ${land.colors[0]}, ${land.colors[2]})`;
+    function speckles(seed, n, palette) {
+      let s = seed;
+      const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+      let out = "";
+      for (let i = 0; i < n; i++) {
+        const x = (28 + rnd() * 148).toFixed(1);
+        const y = (28 + rnd() * 124).toFixed(1);
+        const r = (0.6 + rnd() * 2.4).toFixed(1);
+        const c = palette[i % palette.length];
+        out += `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${(0.32 + rnd() * 0.55).toFixed(2)}" />`;
+      }
+      return out;
+    }
+
+    function spark(x, y, delay, color = "#fff") {
+      return `<g class="spark" style="animation-delay:${delay}s">
+        <path d="M${x} ${y - 6} L${x} ${y + 6} M${x - 6} ${y} L${x + 6} ${y}" stroke="${color}" stroke-width="1.5" stroke-linecap="round" />
+      </g>`;
+    }
+
+    function oreArt(id) {
+      if (id === "pebble") {
+        return `
+          <path fill="none" stroke="#c4b8a8" stroke-width="2" opacity="0.28" d="M50 72 L96 34 L146 50" />
+          <path fill="#2a241e" opacity="0.75" d="M40 96 L58 68 L86 82 L74 112 Z" />
+          <path fill="#161410" d="M88 52 L112 40 L132 58 L114 82 L90 72 Z" />
+          <path fill="#3a3228" opacity="0.85" d="M128 92 L158 80 L172 104 L148 126 L122 114 Z" />
+          <path fill="#1a1814" d="M52 120 L70 108 L92 128 L68 140 Z" />
+          <path fill="none" stroke="#0e0c0a" stroke-width="2.6" d="M46 108 L92 90 L148 112" />
+          <ellipse cx="76" cy="98" rx="7" ry="4.5" fill="#12100e" />
+          <ellipse cx="124" cy="70" rx="9" ry="5" fill="#1c1814" />
+          <ellipse cx="150" cy="108" rx="6" ry="3.5" fill="#141210" />`;
+      }
+      if (id === "granite") {
+        return `
+          <path fill="#c4a090" opacity="0.35" d="M70 58 L102 46 L118 72 L86 86 Z" />
+          <path fill="#6a6058" opacity="0.28" d="M120 96 L150 88 L160 118 L128 126 Z" />
+          ${speckles(42, 70, ["#f2ece6", "#1c1a18", "#ead8d0", "#3a342e", "#d8c8bc"])}
+          <path fill="none" stroke="#4a4440" stroke-width="1.6" opacity="0.35" d="M52 92 L96 78 L148 98" />`;
+      }
+      if (id === "quartz") {
+        return `
+          <path d="M36 112 L168 64" stroke="#f7ffff" stroke-width="9" opacity="0.38" />
+          <path d="M42 96 L172 118" stroke="#cfe8e8" stroke-width="5" opacity="0.42" />
+          <polygon class="glint" points="72,40 86,48 86,66 72,74 58,66 58,48" fill="#eef8f8" stroke="#9cc8c8" stroke-width="1.4" />
+          <polygon points="118,34 132,42 132,60 118,68 104,60 104,42" fill="#f6fdff" stroke="#b7d4d4" stroke-width="1.3" opacity="0.92" />
+          <polygon class="glint" points="148,70 160,78 160,94 148,102 136,94 136,78" fill="#dceeee" stroke="#8bb8b8" stroke-width="1.2" />
+          <polygon points="88,108 100,116 100,132 88,140 76,132 76,116" fill="#e8f4f4" stroke="#9cc" stroke-width="1.2" opacity="0.85" />
+          ${spark(98, 54, 0, "#f4ffff")}
+          ${spark(150, 86, 0.45, "#dff6f6")}`;
+      }
+      if (id === "gold") {
+        return `
+          <path fill="#1a2430" opacity="0.35" d="M48 70 L90 48 L140 62 L120 110 L62 118 Z" />
+          <polygon points="78,52 90,70 78,88 66,70" fill="#eef9ff" stroke="#8fd0ff" stroke-width="1.4" />
+          <polygon points="118,40 132,58 118,78 104,58" fill="#f7fcff" stroke="#c5ecff" stroke-width="1.5" />
+          <polygon points="150,86 162,100 150,116 138,100" fill="#d7eefc" stroke="#7eb8e0" stroke-width="1.3" />
+          <polygon points="96,100 108,116 96,134 84,116" fill="#cfe8f8" stroke="#9fd8ff" stroke-width="1.2" />
+          <polygon points="58,98 68,110 58,124 48,110" fill="#e4f4ff" stroke="#a8d4ee" stroke-width="1.1" />
+          ${spark(118, 58, 0, "#fff")}
+          ${spark(78, 70, 0.35, "#dff4ff")}
+          ${spark(150, 100, 0.7, "#fff")}
+          ${spark(96, 116, 0.2, "#cfefff")}`;
+      }
+      if (id === "obsidian") {
+        return `
+          <path fill="#120c18" opacity="0.45" d="M44 88 L86 50 L150 70 L140 128 L70 138 Z" />
+          <path class="glint" d="M58 92 L96 44 L108 52 L70 104 Z" fill="#d8c8f0" opacity="0.28" />
+          <path d="M128 58 L170 92 L158 100 L118 64 Z" fill="#f0e8ff" opacity="0.16" />
+          <path fill="none" stroke="#2a1c38" stroke-width="2.4" d="M50 118 L110 86 L156 112" />
+          <path fill="none" stroke="#c8b4e4" stroke-width="1.5" opacity="0.45" d="M64 70 L102 54 L138 78" />
+          <path fill="none" stroke="#08060c" stroke-width="2" d="M72 128 L124 104" />`;
+      }
+      return `
+        <ellipse cx="70" cy="78" rx="16" ry="11" fill="#1c2228" opacity="0.45" />
+        <ellipse cx="128" cy="64" rx="12" ry="8" fill="#161a20" opacity="0.5" />
+        <ellipse cx="108" cy="118" rx="18" ry="10" fill="#12161c" opacity="0.4" />
+        <ellipse cx="70" cy="78" rx="10" ry="6" fill="#0e1216" />
+        <ellipse cx="128" cy="64" rx="7" ry="4.5" fill="#0c1014" />
+        <path fill="none" stroke="#d2c8aa" stroke-width="1.15" opacity="0.42" d="M40 70 L90 110 M48 58 L98 98 M56 48 L108 90" />
+        <path fill="none" stroke="#b8c0cc" stroke-width="1.1" opacity="0.38" d="M150 50 L100 120 M162 62 L112 132 M138 42 L88 112" />
+        <path fill="#8a6a48" opacity="0.35" d="M86 96 L102 90 L110 104 L94 112 Z" />
+        <path class="glint" d="M54 86 L92 48 L100 56 L62 96 Z" fill="#e8eef6" opacity="0.18" />`;
     }
 
     function renderLands() {
@@ -1042,14 +1207,14 @@
         const active = state.activeLand === land.id;
         if (open) {
           return `<button type="button" class="land-card ${active ? "active" : ""}" data-land="${land.id}">
-            <div class="swatch" style="background:${swatch(land)}"></div>
+            <div class="swatch ${land.id}"></div>
             <div class="name">${land.name}</div>
             <div class="meta">x${land.mult} · ${fmt(landIncome(land.id))}/s</div>
           </button>`;
         }
         const canBuy = nxt && nxt.id === land.id;
         return `<div class="land-card locked">
-          <div class="swatch" style="background:${swatch(land)}"></div>
+          <div class="swatch ${land.id}"></div>
           <div class="name">${land.name}</div>
           <div class="meta">x${land.mult} income</div>
           ${canBuy ? `<button type="button" class="unlock" data-unlock="${land.id}">Unlock · ${fmt(land.cost)}</button>` : `<div class="meta">Locked</div>`}
