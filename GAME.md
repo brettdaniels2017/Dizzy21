@@ -17,7 +17,7 @@ Local play: open `index.html` or serve the folder (Ruby `httpd` on port 8000 was
 - **Chip crew:** wooden mill on the **right**, small walking miners with picks. Shirt color uses crew visual tiers. Up to 5 walkers; at the 7th crew upgrade they become little pickup trucks that continuously shuttle between the mill and rock.
 - **Mine carts:** metal depot on the **left**, rail, one cart that upgrades in color with cart level. Not the same building as the mill.
 - **Bore drill / Excavator:** first buy goes to the gear rack. Drag near the rock to place; drop position is kept. Drag a placed tool to move it. Extra buys upgrade the same tool. At the 7th Excavator upgrade it becomes a larger reinforced machine with heavy tracks, cab cage, hydraulics, bucket teeth, and a flashing beacon. Save ids stay `drill` / `blast`. Excavator truck still hauls to the factory from wherever you park it.
-- **Outdoor pit:** every rock has its own landmark treatment: Coal mine portal and piles, Granite outcrops, Quartz crystal clusters, Diamond headframe and gems, Obsidian volcano and shards, or Meteorite crater, moon, and meteor streak.
+- **Outdoor pit:** every rock has a detailed landmark treatment: timbered Coal mine portal and piles, faceted Granite outcrops, highlighted Quartz crystal clusters, Diamond mine headframe and animated oil pumpjack, ridged Obsidian volcano and shards, or layered Meteorite crater, moon, and meteor streak.
 
 ## Economy (current intent)
 

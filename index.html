@@ -189,7 +189,19 @@
 
     .pit-set .sun { animation: glow 3.2s ease-in-out infinite; }
     .pit-set .cloud { animation: glow 5s ease-in-out infinite; }
-    .pit-set .land-detail { display: none; }
+    .pit-set .hill-back, .pit-set .hill-alt-back {
+      stroke: rgba(24, 38, 28, 0.24);
+      stroke-width: 1.2;
+    }
+    .pit-set .hill-front, .pit-set .hill-alt-front,
+    .pit-set .grass, .pit-set .grass-alt {
+      stroke: rgba(18, 32, 22, 0.3);
+      stroke-width: 1.3;
+    }
+    .pit-set .land-detail {
+      display: none;
+      filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.28));
+    }
 
     .rock-wrap[data-land="pebble"] .detail-pebble,
     .rock-wrap[data-land="granite"] .detail-granite,
@@ -198,8 +210,7 @@
     .rock-wrap[data-land="obsidian"] .detail-obsidian,
     .rock-wrap[data-land="meteor"] .detail-meteor { display: block; }
 
-    .detail-quartz .crystal-glow,
-    .detail-gold .diamond-glow { animation: landmarkGlow 2.4s ease-in-out infinite; }
+    .detail-quartz .crystal-glow { animation: landmarkGlow 2.4s ease-in-out infinite; }
     .detail-obsidian .volcano-smoke { animation: volcanoPuff 4s ease-out infinite; }
     .detail-meteor .meteor-streak { animation: meteorStreak 4.8s ease-in infinite; }
 
@@ -228,6 +239,9 @@
     .rock-wrap[data-land="granite"] .scene-alt,
     .rock-wrap[data-land="gold"] .scene-alt,
     .rock-wrap[data-land="meteor"] .scene-alt { display: block; }
+
+    .rock-wrap[data-land="gold"] .alt-tree,
+    .rock-wrap[data-land="meteor"] .alt-tree { display: none; }
 
     .rock-wrap[data-land="pebble"] .sky { fill: #7ec8ea; }
     .rock-wrap[data-land="pebble"] .hill-back { fill: #6aaa4a; }
@@ -784,6 +798,23 @@
       </div>
       <div class="rock-wrap" id="arena" data-land="pebble">
         <svg class="pit-set" viewBox="0 0 400 220" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+          <defs>
+            <linearGradient id="pitCoal" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#716052" /><stop offset="0.55" stop-color="#453930" /><stop offset="1" stop-color="#241e1a" />
+            </linearGradient>
+            <linearGradient id="pitGranite" x1="0" y1="0" x2="0.9" y2="1">
+              <stop offset="0" stop-color="#c9beb5" /><stop offset="0.48" stop-color="#918983" /><stop offset="1" stop-color="#5e5955" />
+            </linearGradient>
+            <linearGradient id="pitCrystal" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffffff" stop-opacity="0.95" /><stop offset="0.5" stop-color="#bdeff4" /><stop offset="1" stop-color="#65b6c0" />
+            </linearGradient>
+            <linearGradient id="pitLava" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#ffe06a" /><stop offset="0.45" stop-color="#f27535" /><stop offset="1" stop-color="#8f241d" />
+            </linearGradient>
+            <radialGradient id="pitMoon" cx="35%" cy="30%">
+              <stop offset="0" stop-color="#b8cad8" /><stop offset="0.65" stop-color="#718394" /><stop offset="1" stop-color="#3d4c5c" />
+            </radialGradient>
+          </defs>
           <g class="scene-field">
             <rect class="sky" width="400" height="220" fill="#7ec8ea" />
             <circle class="sun" cx="322" cy="40" r="20" fill="#f7e08a" />
@@ -814,73 +845,117 @@
             <path class="hill-alt-back" d="M0 118 Q80 86 160 108 Q240 132 320 96 Q370 80 400 92 L400 220 L0 220 Z" fill="#8a9a86" />
             <path class="hill-alt-front" d="M0 148 Q90 128 180 146 Q270 168 400 140 L400 220 L0 220 Z" fill="#6e7e6a" />
             <path class="grass-alt" d="M0 168 Q120 158 220 170 Q310 184 400 166 L400 220 L0 220 Z" fill="#5a6a54" />
-            <rect x="362" y="134" width="12" height="38" rx="2" fill="#4a3a28" />
-            <circle cx="368" cy="120" r="18" fill="#3d5a38" />
-            <circle cx="354" cy="128" r="11" fill="#4a6a40" />
+            <g class="alt-tree">
+              <rect x="362" y="134" width="12" height="38" rx="2" fill="#4a3a28" />
+              <circle cx="368" cy="120" r="18" fill="#3d5a38" />
+              <circle cx="354" cy="128" r="11" fill="#4a6a40" />
+            </g>
           </g>
           <g class="land-detail detail-pebble">
-            <path d="M104 159 L118 112 L164 112 L180 159 Z" fill="#493d32" stroke="#2a211a" stroke-width="3" />
-            <path d="M119 159 V128 Q141 105 163 128 V159 Z" fill="#171513" />
-            <path d="M112 120 H171 M108 137 H176" stroke="#765c3c" stroke-width="4" />
-            <path d="M119 111 V159 M164 111 V159" stroke="#8a6842" stroke-width="4" />
-            <g fill="#211d19" stroke="#0f0d0b" stroke-width="1">
-              <ellipse cx="92" cy="158" rx="15" ry="7" />
-              <ellipse cx="185" cy="164" rx="18" ry="8" />
-              <circle cx="80" cy="163" r="7" />
+            <path d="M101 160 L115 110 L166 110 L182 160 Z" fill="url(#pitCoal)" stroke="#241c17" stroke-width="3" />
+            <path d="M118 160 V131 Q140 105 164 131 V160 Z" fill="#100f0e" stroke="#302820" stroke-width="2" />
+            <path d="M123 160 V134 Q141 114 159 134 V160" fill="none" stroke="#514339" stroke-width="3" opacity="0.8" />
+            <path d="M109 119 H173 M106 138 H178" stroke="#705436" stroke-width="5" />
+            <path d="M115 109 V160 M166 109 V160" stroke="#936d43" stroke-width="5" />
+            <path d="M116 113 L166 156 M166 113 L116 156" stroke="#5b4028" stroke-width="2" opacity="0.72" />
+            <path d="M130 160 L137 134 M151 160 L145 134" stroke="#8a7765" stroke-width="2" />
+            <path d="M125 151 H158 M122 158 H162" stroke="#4b3e34" stroke-width="2" />
+            <circle cx="118" cy="126" r="4" fill="#f4d36e" stroke="#4b3318" stroke-width="1.4" />
+            <g fill="#211d19" stroke="#0f0d0b" stroke-width="1.2">
+              <path d="M68 164 Q78 145 95 153 Q108 145 118 164 Z" />
+              <path d="M165 165 Q178 145 193 155 Q207 151 216 165 Z" />
+              <circle cx="81" cy="157" r="7" />
+            </g>
+            <g fill="#65584c" opacity="0.55">
+              <ellipse cx="84" cy="154" rx="5" ry="2" /><ellipse cx="188" cy="156" rx="7" ry="2.5" />
             </g>
           </g>
           <g class="land-detail detail-granite">
-            <g stroke="#524e4a" stroke-width="2">
-              <path d="M52 164 L62 126 L91 108 L118 129 L126 164 Z" fill="#8f8780" />
-              <path d="M62 126 L90 137 L118 129 M90 137 L87 164" fill="none" />
-              <path d="M282 164 L290 132 L316 116 L343 135 L351 164 Z" fill="#756f6a" />
-              <path d="M290 132 L317 143 L343 135 M317 143 L315 164" fill="none" />
+            <g stroke="#514d49" stroke-width="1.8">
+              <path d="M49 165 L61 125 L90 106 L120 127 L129 165 Z" fill="url(#pitGranite)" />
+              <path d="M61 125 L89 137 L120 127 L105 153 L129 165 H49 Z" fill="#746e69" opacity="0.72" />
+              <path d="M61 125 L89 137 L90 106 M89 137 L86 165 M120 127 L105 153" fill="none" />
+              <path d="M279 165 L289 130 L316 114 L345 133 L353 165 Z" fill="url(#pitGranite)" />
+              <path d="M289 130 L317 142 L345 133 L332 153 L353 165 H279 Z" fill="#67625e" opacity="0.74" />
+              <path d="M289 130 L317 142 L316 114 M317 142 L314 165 M345 133 L332 153" fill="none" />
             </g>
-            <g fill="#d9ccc2" opacity="0.55">
-              <circle cx="75" cy="130" r="2" /><circle cx="103" cy="134" r="1.7" />
-              <circle cx="307" cy="131" r="2" /><circle cx="334" cy="140" r="1.7" />
+            <g fill="#eadfd7" opacity="0.7">
+              <circle cx="72" cy="126" r="2" /><circle cx="101" cy="131" r="1.7" /><circle cx="82" cy="151" r="1.4" />
+              <circle cx="305" cy="128" r="2" /><circle cx="335" cy="137" r="1.7" /><circle cx="326" cy="156" r="1.4" />
             </g>
+            <path d="M53 159 L72 155 M104 116 L113 124 M286 158 L302 154 M328 120 L339 130" stroke="#e9ddd4" stroke-width="1.4" opacity="0.5" />
           </g>
           <g class="land-detail detail-quartz">
-            <g class="crystal-glow" stroke="#dffbff" stroke-width="1.4">
-              <polygon points="58,166 69,121 80,166" fill="#bdeff4" />
-              <polygon points="75,166 91,137 101,166" fill="#e5ffff" />
-              <polygon points="298,166 311,126 322,166" fill="#c8f4f4" />
-              <polygon points="315,166 333,143 341,166" fill="#f0ffff" />
+            <g class="crystal-glow" stroke="#e9ffff" stroke-width="1.5">
+              <polygon points="55,166 68,117 82,166" fill="url(#pitCrystal)" />
+              <path d="M68 117 L69 166 L58 153 Z" fill="#ffffff" opacity="0.55" />
+              <polygon points="74,166 91,133 104,166" fill="url(#pitCrystal)" />
+              <path d="M91 133 L91 166 L100 157 Z" fill="#72c9d2" opacity="0.5" />
+              <polygon points="295,166 310,122 324,166" fill="url(#pitCrystal)" />
+              <path d="M310 122 L311 166 L299 153 Z" fill="#ffffff" opacity="0.55" />
+              <polygon points="313,166 333,138 344,166" fill="url(#pitCrystal)" />
+              <path d="M333 138 L333 166 L340 158 Z" fill="#67bbc6" opacity="0.48" />
             </g>
-            <path d="M52 167 H105 M292 167 H346" stroke="#7ac9ce" stroke-width="4" opacity="0.7" />
+            <path d="M50 167 H108 M289 167 H348" stroke="#579ca5" stroke-width="5" />
+            <path d="M56 148 L68 143 M83 154 L96 151 M300 149 L314 145 M324 154 L338 151" stroke="#fff" stroke-width="1.5" opacity="0.85" />
           </g>
           <g class="land-detail detail-gold">
-            <g stroke="#4b351c" stroke-width="4" fill="none">
-              <path d="M55 164 L76 103 L99 164 M64 138 H91 M70 120 H85" />
-              <path d="M47 164 H108 M76 103 L114 132 V164" />
+            <g stroke="#483019" fill="none">
+              <path d="M50 165 L76 99 L103 165 M58 144 H95 M65 126 H88 M71 110 H82" stroke-width="5" />
+              <path d="M42 165 H116 M76 99 L118 132 V165" stroke-width="4" />
+              <path d="M54 155 L98 116 M58 132 L101 160 M83 108 L113 137" stroke="#92672d" stroke-width="2" />
+              <path d="M48 162 H111" stroke="#e2b653" stroke-width="2" opacity="0.75" />
             </g>
-            <circle cx="76" cy="101" r="5" fill="#f4e08a" />
-            <g class="diamond-glow">
-              <path d="M302 143 L312 130 L322 143 L312 157 Z" fill="#eafaff" stroke="#93dfff" stroke-width="1.5" />
-              <path d="M337 155 L344 146 L351 155 L344 165 Z" fill="#ffffff" stroke="#bcecff" />
+            <circle cx="76" cy="99" r="6" fill="#f4d262" stroke="#6d451d" stroke-width="1.5" />
+            <g class="oil-pump" stroke="#352619" stroke-linejoin="round">
+              <path d="M292 165 H363" stroke-width="5" />
+              <path d="M310 164 L322 126 L337 164 Z" fill="#795126" stroke-width="3" />
+              <path d="M314 151 H333 M317 140 H329" fill="none" stroke="#d09b43" stroke-width="2" />
+              <circle cx="322" cy="126" r="5" fill="#d4a543" stroke-width="2" />
+              <g>
+                <animateTransform attributeName="transform" type="rotate" values="-7 322 126;8 322 126;-7 322 126" dur="3.4s" repeatCount="indefinite" />
+                <path d="M283 119 Q308 111 352 121 L348 130 Q311 124 283 126 Z" fill="#a86d29" stroke-width="2.5" />
+                <path d="M350 119 L365 124 L357 138 L347 130 Z" fill="#633e20" stroke-width="2" />
+                <circle cx="289" cy="123" r="8" fill="#d3a044" stroke-width="2" />
+                <path d="M294 123 H344" stroke="#f1c15d" stroke-width="1.6" opacity="0.75" />
+              </g>
+              <path d="M356 133 V165" stroke="#5e4328" stroke-width="3">
+                <animate attributeName="d" values="M356 130 V165;M356 139 V165;M356 130 V165" dur="3.4s" repeatCount="indefinite" />
+              </path>
+              <rect x="350" y="160" width="13" height="6" rx="1" fill="#5b3d22" stroke-width="1.5" />
             </g>
           </g>
           <g class="land-detail detail-obsidian">
-            <path d="M42 164 L105 76 L170 164 Z" fill="#2a2630" />
-            <path d="M86 103 L105 76 L124 102 L113 99 L104 108 L96 99 Z" fill="#d85832" opacity="0.9" />
-            <path d="M102 106 L96 137 L112 164 M111 103 L121 132" stroke="#ef6a38" stroke-width="3" fill="none" opacity="0.75" />
+            <path d="M38 165 L104 73 L173 165 Z" fill="#25212c" stroke="#141119" stroke-width="2.5" />
+            <path d="M38 165 L82 104 L98 165 Z" fill="#17151c" opacity="0.75" />
+            <path d="M105 73 L173 165 L121 143 Z" fill="#342b3a" opacity="0.72" />
+            <path d="M84 102 L104 73 L126 101 L114 98 L104 109 L95 98 Z" fill="url(#pitLava)" stroke="#74251d" stroke-width="1.5" />
+            <path d="M102 106 L95 136 L111 165 M112 103 L123 133 M101 122 L110 136" stroke="url(#pitLava)" stroke-width="4" fill="none" />
+            <path d="M62 137 L83 109 M131 129 L151 155" stroke="#5c4a66" stroke-width="1.5" opacity="0.75" />
             <g class="volcano-smoke" fill="#b7a9bc">
-              <circle cx="100" cy="71" r="9" /><circle cx="111" cy="65" r="12" /><circle cx="93" cy="60" r="8" />
+              <circle cx="100" cy="70" r="9" /><circle cx="112" cy="63" r="13" /><circle cx="92" cy="58" r="8" />
+              <circle cx="109" cy="49" r="7" fill="#d0c4d4" opacity="0.7" />
             </g>
-            <path d="M306 164 L317 125 L327 151 L338 112 L349 164 Z" fill="#17131c" stroke="#55445f" stroke-width="2" />
+            <path d="M302 165 L316 122 L327 150 L339 108 L352 165 Z" fill="#151119" stroke="#665070" stroke-width="2" />
+            <path d="M316 122 L320 156 M339 108 L341 158" stroke="#b38dc2" stroke-width="1.3" opacity="0.48" />
+            <path d="M306 155 L316 147 L326 157 L340 142 L350 155" fill="none" stroke="#3d2d48" stroke-width="2" />
           </g>
           <g class="land-detail detail-meteor">
-            <ellipse cx="83" cy="158" rx="38" ry="11" fill="#111925" opacity="0.7" />
-            <ellipse cx="83" cy="156" rx="27" ry="7" fill="#34404d" />
-            <ellipse cx="83" cy="154" rx="17" ry="4" fill="#171f2a" />
-            <circle cx="348" cy="62" r="24" fill="#6f8092" opacity="0.45" />
-            <circle cx="340" cy="56" r="5" fill="#3f5061" opacity="0.7" />
-            <circle cx="356" cy="69" r="7" fill="#435568" opacity="0.65" />
+            <ellipse cx="83" cy="159" rx="42" ry="13" fill="#101722" opacity="0.8" />
+            <ellipse cx="83" cy="156" rx="31" ry="9" fill="#4b5967" stroke="#778797" stroke-width="1.5" />
+            <ellipse cx="83" cy="155" rx="20" ry="5" fill="#151d28" />
+            <ellipse cx="78" cy="153" rx="11" ry="2.5" fill="#0b1119" />
+            <path d="M43 158 L28 151 M51 150 L41 139 M116 151 L131 140 M122 159 L142 155" stroke="#596978" stroke-width="2" />
+            <circle cx="348" cy="62" r="26" fill="url(#pitMoon)" stroke="#91a2b2" stroke-width="1.3" opacity="0.9" />
+            <path d="M330 45 Q346 61 331 80 Q315 60 330 45 Z" fill="#263545" opacity="0.5" />
+            <circle cx="340" cy="54" r="5" fill="#455768" opacity="0.75" />
+            <circle cx="357" cy="68" r="7" fill="#405263" opacity="0.7" />
+            <circle cx="355" cy="44" r="3" fill="#526576" opacity="0.7" />
             <g class="meteor-streak">
-              <path d="M298 28 L348 2" stroke="#dcecff" stroke-width="3" opacity="0.75" />
-              <path d="M298 28 L335 10" stroke="#8ec9ff" stroke-width="7" opacity="0.22" />
-              <circle cx="298" cy="28" r="5" fill="#f4e8c4" />
+              <path d="M298 28 L357 -2" stroke="#dcecff" stroke-width="2.5" opacity="0.85" />
+              <path d="M298 28 L343 5" stroke="#8ec9ff" stroke-width="9" opacity="0.22" />
+              <circle cx="298" cy="28" r="6" fill="#f4e8c4" stroke="#fff4cc" stroke-width="1.5" />
+              <path d="M294 23 L288 17 M291 28 L283 29 M296 33 L291 40" stroke="#f0c36a" stroke-width="1.5" />
             </g>
           </g>
           <ellipse cx="200" cy="176" rx="78" ry="14" fill="#000" opacity="0.18" />
